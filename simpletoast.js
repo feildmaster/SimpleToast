@@ -18,7 +18,6 @@
       'font-style': 'italic',
     },
     shared: {
-      display: 'inline-block',
       maxWidth: '320px',
       padding: '5px 8px',
       borderRadius: '3px',
@@ -33,15 +32,32 @@
       background: '#2980b9',
     },
     button: {
+      height: '20px',
+      margin: '-3px 0 0 3px',
+      padding: '0 5px',
+      verticalAlign: 'middle',
+      whiteSpace: 'nowrap',
+      border: '1px solid rgba(27,31,35,0.2)',
+      borderRadius: '10px',
+      fontSize: '11px',
       textShadow: '#173646 0px 0px 3px',
       background: '#2c9fea',
+      mouseOver: {
+        'border-color': 'rgba(27,31,35,0.35)',
+        background: '#149FFF',
+      },
     },
   };
 
   function applyCSS(element, css = {}) {
+    const old = {};
     Object.keys(css).forEach((key) => {
+      const val = css[key];
+      if (typeof val === 'object') return;
+      old[key] = element.style[key];
       element.style[key] = css[key];
     });
+    return old;
   }
   
   const toasts = new Map();
@@ -75,7 +91,7 @@
   })();
   let count = 0;
 
-  function Toast({title, text, css, buttons, timeout}) {
+  function Toast({title, text, css = {}, buttons, timeout}) {
     if (typeof arguments[0] === 'string') {
       text = arguments[0];
     }
@@ -85,7 +101,7 @@
     el.setAttribute('id', `AlertToast-${id}`);
     applyCSS(el, style.shared);
     applyCSS(el, style.toast);
-    applyCSS(el, css);
+    applyCSS(el, css.toast || css);
 
     // Add title, body
     if (title) {
@@ -108,8 +124,37 @@
       toast.timeout = Date.now() + timeout;
     }
   
-    if (buttons) {
-      // TODO: Add buttons
+    if (typeof buttons === 'object') {
+      if (!Array.isArray(buttons)) {
+        buttons = [buttons];
+      }
+      buttons.forEach((button) => {
+        if (!button.text) return;
+        const elb = document.createElement('button');
+        elb.innerHTML = button.text;
+        applyCSS(elb, style.button);
+        applyCSS(elb, css.button);
+        applyCSS(elb, button.css);
+        if (typeof button.onclick === 'function') {
+          elb.onclick = button.onclick;
+        }
+        let prev = {};
+        elb.onmouseover = () => {
+          // Apply default style
+          const original = applyCSS(elb, style.button.mouseOver);
+          // Apply CSS style
+          const custom = applyCSS(elb, css.button && css.button.mouseOver);
+          // Apply button style
+          const custom2 = applyCSS(elb, button.css && button.css.mouseOver);
+          // Remember the original styles, do this in reverse
+          Object.assign(prev, custom2, custom, original); 
+        };
+        elb.onmouseout = () => {
+          applyCSS(elb, prev);
+          prev = {};
+        };
+        el.appendChild(elb);
+      });
     }
     el.addEventListener('click', toast.close);
 
