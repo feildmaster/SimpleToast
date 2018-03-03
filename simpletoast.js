@@ -90,13 +90,17 @@
   })();
   let count = 0;
 
-  function Toast({title, text, css = {}, buttons, timeout}) {
+  function Toast({title, text, className, css = {}, buttons, timeout}) {
     if (typeof arguments[0] === 'string') {
       text = arguments[0];
     }
     if (!text) return;
     const id = count++;
     const el = document.createElement('div');
+    if (className) {
+      const clazz = className.toast || className;
+      el.className = Array.isArray(clazz) ? clazz.join(',') : (typeof clazz === 'string' ? clazz : undefined);
+    }
     applyCSS(el, style.toast);
     applyCSS(el, css.toast || css);
 
@@ -128,6 +132,10 @@
       buttons.forEach((button) => {
         if (!button.text) return;
         const elb = document.createElement('button');
+        if (button.className || className && className.button) {
+          const clazz = button.className || className.button
+          elb.className = Array.isArray(clazz) ? clazz.join(',') : clazz;
+        }
         elb.innerHTML = button.text;
         applyCSS(elb, style.button);
         applyCSS(elb, css.button);
