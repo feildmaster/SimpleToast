@@ -2,6 +2,7 @@
  * SimpleToast - A small library for toasts
  */
 (() => {
+  if (window.SimpleToast) return;
   const style = {
     root: {
       display: 'flex',
