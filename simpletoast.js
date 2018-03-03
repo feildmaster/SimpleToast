@@ -46,12 +46,22 @@
   
   const toasts = new Map();
   const root = (() => {
-    const el = document.createElement('div');
-    el.setAttribute('id', 'AlertToast');
-    applyCSS(el, style.root);
-  
-    const body = document.getElementsByTagName('body')[0];
-    body.insertBefore(el, body.firstChild);
+    function create() {
+      const el = document.createElement('div');
+      el.setAttribute('id', 'AlertToast');
+      applyCSS(el, style.root);
+
+      const body = document.getElementsByTagName('body')[0];
+      if (body) { // Depending on when the script is loaded... this might be null
+        body.appendChild(el);
+      } else {
+        window.addEventListener('load', () => {
+          if (document.getElementById(el.id)) return; // Another script may have created it already
+          document.getElementsByTagName('body')[0].appendChild(el);
+        });
+      }
+      return el;
+    }
   
     setInterval(() => { // TODO: don't always run a timer
       const now = Date.now();
@@ -61,7 +71,7 @@
         toast.close();
       });
     }, 1000);
-    return el;
+    return document.getElementById('AlertToast') || create();
   })();
   let count = 0;
 
