@@ -2,7 +2,7 @@
  * SimpleToast - A small library for toasts
  */
 (() => {
-  const version = buildVersion(1, 2);
+  const version = buildVersion(1, 3);
   if (window.SimpleToast) {
     if (SimpleToast.version) {
       if (SimpleToast.version >= version.number) return;
@@ -68,7 +68,7 @@
   }
 
   const toasts = new Map();
-  const root = (() => {
+  let root = (() => {
     function create() {
       const el = document.createElement('div');
       el.setAttribute('id', 'AlertToast');
@@ -79,7 +79,17 @@
         body.appendChild(el);
       } else {
         window.addEventListener('load', () => {
-          if (document.getElementById(el.id)) return; // Another script may have created it already
+          const exists = document.getElementById(el.id);
+          if (exists) { // Another script may have created it already
+            if (el.hasChildNodes()) { // Transfer existing nodes to new root
+              const nodes = el.childNodes;
+              for (let i = 0, l = nodes.length; i < l; i++) {
+                exists.appendChild(nodes[i]);
+              }
+            }
+            root = exists; // Set this incase anyone still has a reference to this toast
+            return;
+          }
           document.getElementsByTagName('body')[0].appendChild(el);
         });
       }
