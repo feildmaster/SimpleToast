@@ -2,7 +2,15 @@
  * SimpleToast - A small library for toasts
  */
 (() => {
-  if (window.SimpleToast) return;
+  const version = buildVersion(1, 2);
+  if (window.SimpleToast) {
+    if (SimpleToast.version) {
+      if (SimpleToast.version >= version.number) return;
+    }
+    console.log(`SimpleToast(v${version.string}): Overriding SimpleToast(v${SimpleToast.versionString || '[unknown]'})`);
+  } else {
+    console.log(`SimpleToast(v${version.string}): Loading`);
+  }
   const style = {
     root: {
       display: 'flex',
@@ -58,7 +66,7 @@
     });
     return old;
   }
-  
+
   const toasts = new Map();
   const root = (() => {
     function create() {
@@ -77,7 +85,7 @@
       }
       return el;
     }
-  
+
     setInterval(() => { // TODO: don't always run a timer
       const now = Date.now();
       toasts.forEach((toast) => {
@@ -124,7 +132,7 @@
     if (timeout) {
       toast.timeout = Date.now() + timeout;
     }
-  
+
     if (typeof buttons === 'object') {
       if (!Array.isArray(buttons)) {
         buttons = [buttons];
@@ -166,6 +174,14 @@
     toasts.set(id, toast);
     return toast;
   }
-  
+
+  Toast.version = version.number;
+  Toast.versionString = version.string;
   window.SimpleToast = Toast;
+  function buildVersion(major, minor = 0, patch = 0) {
+    return {
+      string: `${major}.${minor}${patch ? `.${patch}` : ''}`,
+      number: major * 1000000000 + minor * 1000 +  patch,
+    };
+  }
 })();
