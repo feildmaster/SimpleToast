@@ -61,6 +61,9 @@
   let count = 0;
 
   function Toast({text, css, buttons, timeout}) {
+    if (typeof arguments[0] === 'string') {
+      text = arguments[0];
+    }
     if (!text) return;
     const id = count++;
     const el = document.createElement('div');
