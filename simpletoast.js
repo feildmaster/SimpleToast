@@ -6,6 +6,7 @@
     root: {
       display: 'flex',
       'flex-direction': 'column-reverse',
+      'align-items': 'flex-end',
       position: 'fixed',
       bottom: 0,
       right: 0,
