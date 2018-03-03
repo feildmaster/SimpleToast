@@ -12,6 +12,11 @@
       right: 0,
       zIndex: 1000,
     },
+    title: {
+      display: 'block',
+      fontSize: '15px',
+      'font-style': 'italic',
+    },
     shared: {
       display: 'inline-block',
       maxWidth: '320px',
@@ -60,7 +65,7 @@
   })();
   let count = 0;
 
-  function Toast({text, css, buttons, timeout}) {
+  function Toast({title, text, css, buttons, timeout}) {
     if (typeof arguments[0] === 'string') {
       text = arguments[0];
     }
@@ -72,7 +77,14 @@
     applyCSS(el, style.toast);
     applyCSS(el, css);
 
-    // Add body
+    // Add title, body
+    if (title) {
+      const tel = document.createElement('span');
+      applyCSS(tel, style.title);
+      applyCSS(tel, title.css);
+      tel.textContent = title.text || title;
+      el.appendChild(tel);
+    }
     const body = document.createElement('span');
     body.textContent = text;
     el.appendChild(body);
