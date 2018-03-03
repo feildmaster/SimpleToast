@@ -2,7 +2,7 @@
  * SimpleToast - A small library for toasts
  */
 (() => {
-  const version = buildVersion(1, 3);
+  const version = buildVersion(1, 4);
   if (window.SimpleToast) {
     if (SimpleToast.version) {
       if (SimpleToast.version >= version.number) return;
@@ -95,18 +95,30 @@
       }
       return el;
     }
-
-    setInterval(() => { // TODO: don't always run a timer
-      const now = Date.now();
-      toasts.forEach((toast) => {
-        if (!toast.timeout || now < toast.timeout) return;
-        // Close toast
-        toast.close();
-      });
-    }, 1000);
     return document.getElementById('AlertToast') || create();
   })();
   let count = 0;
+
+  let timeout = null;
+  function startTimeout() {
+    if (timeout) return;
+    timeout = setTimeout(() => {
+      timeout = null;
+      const now = Date.now();
+      let pending = 0;
+      toasts.forEach((toast) => {
+        if (!toast.timeout) return;
+        if (now < toast.timeout) {
+          pending += 1;
+          return;
+        }
+        toast.close();
+      });
+      if (pending) {
+        startTimeout();
+      }
+    }, 1000);
+  }
 
   function Toast({title, text, className, css = {}, buttons, timeout}) {
     if (typeof arguments[0] === 'string') {
@@ -151,7 +163,7 @@
         if (!button.text) return;
         const elb = document.createElement('button');
         if (button.className || className && className.button) {
-          const clazz = button.className || className.button
+          const clazz = button.className || className.button;
           elb.className = Array.isArray(clazz) ? clazz.join(',') : clazz;
         }
         elb.innerHTML = button.text;
@@ -182,6 +194,9 @@
 
     root.appendChild(el);
     toasts.set(id, toast);
+    if (timeout) {
+      startTimeout();
+    }
     return toast;
   }
 
