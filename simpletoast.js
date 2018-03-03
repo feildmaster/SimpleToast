@@ -18,7 +18,7 @@
       fontSize: '15px',
       'font-style': 'italic',
     },
-    shared: {
+    toast: {
       maxWidth: '320px',
       padding: '5px 8px',
       borderRadius: '3px',
@@ -27,8 +27,6 @@
       cursor: 'pointer',
       color: '#fafeff',
       margin: '4px',
-    },
-    toast: {
       textShadow: '#3498db 1px 2px 1px',
       background: '#2980b9',
     },
@@ -99,8 +97,6 @@
     if (!text) return;
     const id = count++;
     const el = document.createElement('div');
-    el.setAttribute('id', `AlertToast-${id}`);
-    applyCSS(el, style.shared);
     applyCSS(el, style.toast);
     applyCSS(el, css.toast || css);
 
@@ -108,8 +104,8 @@
     if (title) {
       const tel = document.createElement('span');
       applyCSS(tel, style.title);
-      applyCSS(tel, title.css);
-      tel.textContent = title.text || title;
+      applyCSS(tel, css.title);
+      tel.textContent = title;
       el.appendChild(tel);
     }
     const body = document.createElement('span');
@@ -141,14 +137,13 @@
         }
         let prev = {};
         elb.onmouseover = () => {
-          // Apply default style
-          const original = applyCSS(elb, style.button.mouseOver);
-          // Apply CSS style
-          const custom = applyCSS(elb, css.button && css.button.mouseOver);
-          // Apply button style
-          const custom2 = applyCSS(elb, button.css && button.css.mouseOver);
-          // Remember the original styles, do this in reverse
-          Object.assign(prev, custom2, custom, original); 
+          const hoverStyle = Object.assign(
+            {},
+            style.button.mouseOver,
+            css.button && css.button.mouseOver,
+            button.css && button.css.mouseOver
+          );
+          prev = applyCSS(hoverStyle);
         };
         elb.onmouseout = () => {
           applyCSS(elb, prev);
