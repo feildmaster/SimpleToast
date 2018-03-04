@@ -130,7 +130,7 @@
     const el = document.createElement('div');
     if (className) {
       const clazz = className.toast || className;
-      el.className = Array.isArray(clazz) ? clazz.join(',') : (typeof clazz === 'string' ? clazz : undefined);
+      el.className = Array.isArray(clazz) ? clazz.join(' ') : (typeof clazz === 'string' ? clazz : undefined);
     }
     applyCSS(el, style.toast);
     applyCSS(el, css.toast || css);
@@ -165,7 +165,7 @@
         const elb = document.createElement('button');
         if (button.className || className && className.button) {
           const clazz = button.className || className.button;
-          elb.className = Array.isArray(clazz) ? clazz.join(',') : clazz;
+          elb.className = Array.isArray(clazz) ? clazz.join(' ') : clazz;
         }
         elb.innerHTML = button.text;
         applyCSS(elb, style.button);
