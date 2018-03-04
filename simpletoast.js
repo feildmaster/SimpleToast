@@ -2,7 +2,8 @@
  * SimpleToast - A small library for toasts
  */
 (() => {
-  const version = buildVersion(1, 4);
+  if (window !== window.top) return;
+  const version = buildVersion(1, 4, 1);
   if (window.SimpleToast) {
     if (SimpleToast.version) {
       if (SimpleToast.version >= version.number) return;
