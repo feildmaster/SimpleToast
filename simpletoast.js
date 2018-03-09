@@ -3,7 +3,7 @@
  */
 (() => {
   if (window !== window.top) return;
-  const version = buildVersion(1, 4, 1);
+  const version = buildVersion(1, 5);
   if (window.SimpleToast) {
     if (SimpleToast.version) {
       if (SimpleToast.version >= version.number) return;
@@ -147,6 +147,7 @@
     body.textContent = text;
     el.appendChild(body);
     const toast = {
+      exists: () => toasts.has(id),
       close: () => {
         root.removeChild(el);
         toasts.delete(id);
