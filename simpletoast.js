@@ -208,7 +208,7 @@
   function buildVersion(major, minor = 0, patch = 0) {
     return {
       string: `${major}.${minor}${patch ? `.${patch}` : ''}`,
-      number: major * 1000000000 + minor * 1000 +  patch,
+      number: major * 1000000000 + minor * 1000 + patch,
     };
   }
 })();
