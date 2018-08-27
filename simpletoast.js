@@ -3,7 +3,7 @@
  */
 (() => {
   if (window !== window.top) return;
-  const version = buildVersion(1, 5);
+  const version = buildVersion(1, 6);
   if (window.SimpleToast) {
     if (SimpleToast.version) {
       if (SimpleToast.version >= version.number) return;
@@ -204,6 +204,7 @@
 
   Toast.version = version.number;
   Toast.versionString = version.string;
+  Toast.count = () => toasts.size;
   window.SimpleToast = Toast;
   function buildVersion(major, minor = 0, patch = 0) {
     return {
