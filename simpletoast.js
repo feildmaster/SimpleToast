@@ -151,6 +151,10 @@
     body.textContent = text;
     el.appendChild(body);
     const toast = {
+      setText: (newText) => {
+        if (!newText || !toast.exists()) return;
+        body.textContent = newText;
+      },
       exists: () => toasts.has(id),
       close: () => {
         root.removeChild(el);
