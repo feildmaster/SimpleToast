@@ -3,7 +3,7 @@
  */
 (() => {
   if (window !== window.top) return;
-  const version = buildVersion(1, 6, 1);
+  const version = buildVersion(1, 7, 0);
   if (window.SimpleToast) {
     if (SimpleToast.version) {
       if (SimpleToast.version >= version.number) return;
@@ -125,7 +125,7 @@
     exists: () => false,
     close: () => {},
   };
-  function Toast({title, text, className, css = {}, buttons, timeout}) {
+  function Toast({title, text, className, css = {}, buttons, timeout, onClose}) {
     if (typeof arguments[0] === 'string') {
       text = arguments[0];
     }
@@ -157,8 +157,12 @@
       },
       exists: () => toasts.has(id),
       close: () => {
+        if (!toast.exists()) return;
         root.removeChild(el);
         toasts.delete(id);
+        if (typeof onClose === 'function') {
+          onClose(toast);
+        }
       },
     };
     if (timeout) {
