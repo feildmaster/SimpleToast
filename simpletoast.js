@@ -3,7 +3,7 @@
  */
 (() => {
   if (window !== window.top) return;
-  const version = buildVersion(1, 7, 0);
+  const version = buildVersion(1, 7, 1);
   if (window.SimpleToast) {
     if (SimpleToast.version) {
       if (SimpleToast.version >= version.number) return;
@@ -121,9 +121,11 @@
     }, 1000);
   }
 
+  function noop() {}
   const blankToast = {
+    setText: noop,
     exists: () => false,
-    close: () => {},
+    close: noop,
   };
   function Toast({title, text, className, css = {}, buttons, timeout, onClose}) {
     if (typeof arguments[0] === 'string') {
