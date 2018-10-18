@@ -3,7 +3,7 @@
  */
 (() => {
   if (window !== window.top) return;
-  const version = buildVersion(1, 8, 0);
+  const version = buildVersion(1, 9, 0);
   if (window.SimpleToast) {
     if (SimpleToast.version) {
       if (SimpleToast.version >= version.number) return;
@@ -114,7 +114,7 @@
           pending += 1;
           return;
         }
-        toast.close();
+        toast.timedout();
       });
       if (pending) {
         startTimeout();
@@ -154,6 +154,7 @@
     const body = document.createElement('span');
     body.textContent = text;
     el.appendChild(body);
+    let closeType = 'unknown';
     const toast = {
       setText: (newText) => {
         if (!newText || !toast.exists()) return;
@@ -165,8 +166,16 @@
         root.removeChild(el);
         toasts.delete(id);
         if (typeof onClose === 'function') {
-          onClose(toast);
+          onClose(toast, closeType);
         }
+      },
+      timedout: () => {
+        closeType = 'timeout';
+        toast.close();
+      },
+      closed: () => {
+        closeType = 'dismissed';
+        toast.close();
       },
     };
     if (timeout) {
@@ -208,7 +217,7 @@
         el.appendChild(elb);
       });
     }
-    el.addEventListener('click', toast.close);
+    el.addEventListener('click', toast.closed);
 
     root.appendChild(el);
     toasts.set(id, toast);
