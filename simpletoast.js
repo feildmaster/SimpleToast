@@ -3,7 +3,7 @@
  */
 (() => {
   if (window !== window.top) return;
-  const version = buildVersion(1, 7, 2);
+  const version = buildVersion(1, 7, 3);
   if (window.SimpleToast) {
     if (SimpleToast.version) {
       if (SimpleToast.version >= version.number) return;
@@ -18,6 +18,7 @@
       'flex-direction': 'column-reverse',
       'align-items': 'flex-end',
       position: 'fixed',
+      'white-space': 'pre-wrap',
       bottom: 0,
       right: 0,
       zIndex: 1000,
