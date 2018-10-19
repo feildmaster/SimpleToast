@@ -3,7 +3,7 @@
  */
 (() => {
   if (window !== window.top) return;
-  const version = buildVersion(1, 10, 1);
+  const version = buildVersion(1, 10, 2);
   if (window.SimpleToast) {
     if (SimpleToast.version) {
       if (SimpleToast.version >= version.number) return;
@@ -139,6 +139,9 @@
     if (!text) return blankToast;
     const id = count++;
     const el = document.createElement('div');
+    const tel = el.appendChild(document.createElement('span'));
+    const body = el.appendChild(document.createElement('span'));
+    const fel = el.appendChild(document.createElement('span'));
     if (className) {
       const clazz = className.toast || className;
       el.className = Array.isArray(clazz) ? clazz.join(' ') : (typeof clazz === 'string' ? clazz : undefined);
@@ -148,17 +151,12 @@
 
     // Add title, body
     if (title) {
-      const tel = document.createElement('span');
       applyCSS(tel, style.title);
       applyCSS(tel, css.title);
       tel.textContent = title;
-      el.appendChild(tel);
     }
-    const body = document.createElement('span');
     body.textContent = text;
-    el.appendChild(body);
     if (footer) {
-      const fel = el.appendChild(document.createElement('span'));
       applyCSS(fel, style.footer);
       applyCSS(fel, css.footer);
       fel.textContent = footer;
@@ -224,7 +222,7 @@
           applyCSS(elb, prev);
           prev = {};
         };
-        el.appendChild(elb);
+        el.insertBefore(elb, fel);
       });
     }
     el.addEventListener('click', toast.closed);
