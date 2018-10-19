@@ -3,7 +3,7 @@
  */
 (() => {
   if (window !== window.top) return;
-  const version = buildVersion(1, 9, 0);
+  const version = buildVersion(1, 10, 0);
   if (window.SimpleToast) {
     if (SimpleToast.version) {
       if (SimpleToast.version >= version.number) return;
@@ -39,6 +39,10 @@
       margin: '4px',
       textShadow: '#3498db 1px 2px 1px',
       background: '#2980b9',
+    },
+    footer: {
+      display: 'block',
+      fontSize: '10px',
     },
     button: {
       height: '20px',
@@ -128,7 +132,7 @@
     exists: () => false,
     close: noop,
   };
-  function Toast({title, text, className, css = {}, buttons, timeout, onClose} = {}) {
+  function Toast({title, text, footer, className, css = {}, buttons, timeout, onClose} = {}) {
     if (typeof arguments[0] === 'string') {
       text = arguments[0];
     }
@@ -154,6 +158,13 @@
     const body = document.createElement('span');
     body.textContent = text;
     el.appendChild(body);
+    if (footer) {
+      const fel = el.appendChild(document.createElement('span'));
+      applyCSS(fel, style.footer);
+      applyCSS(fel, css.footer);
+      fel.textContent = footer;
+    }
+    
     let closeType = 'unknown';
     const toast = {
       setText: (newText) => {
