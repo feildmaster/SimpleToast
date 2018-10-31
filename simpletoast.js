@@ -1,17 +1,20 @@
 /*
  * SimpleToast - A small library for toasts
  */
-(() => {
+((root, factory) => {
+  // Do we care about frames? Until I get some tests in... no
   if (window !== window.top) return;
-  const version = buildVersion(1, 10, 2);
-  if (window.SimpleToast) {
-    if (SimpleToast.version) {
-      if (SimpleToast.version >= version.number) return;
-    }
-    console.log(`SimpleToast(v${version.string}): Overriding SimpleToast(v${SimpleToast.versionString || '[unknown]'})`);
-  } else {
-    console.log(`SimpleToast(v${version.string}): Loading`);
+  const boundToast = window.SimpleToast;
+  const localToast = factory();
+  root.SimpleToast = localToast;
+  console.log(`SimpleToast(v${localToast.versionString}): Loaded`);
+  // Apply to window if SimpleToast doesn't currently exist
+  if (root !== window && !(boundToast instanceof localToast)) {
+    window.SimpleToast = localToast;
+    console.log(`SimpleToast(v${localToast.versionString}): Publicized`);
   }
+})(this, () => {
+  const version = buildVersion(1, 11, 0);
   const style = {
     root: {
       display: 'flex',
@@ -240,11 +243,11 @@
   Toast.version = version.number;
   Toast.versionString = version.string;
   Toast.count = () => toasts.size;
-  window.SimpleToast = Toast;
   function buildVersion(major, minor = 0, patch = 0) {
     return {
       string: `${major}.${minor}${patch ? `.${patch}` : ''}`,
       number: major * 1000000000 + minor * 1000 + patch,
     };
   }
-})();
+  return Object.freeze(Toast);
+});
