@@ -14,7 +14,7 @@
     console.log(`SimpleToast(v${localToast.versionString}): Publicized`);
   }
 })(this, () => {
-  const version = buildVersion(1, 11, 0);
+  const version = buildVersion(1, 12, 0);
   const style = {
     root: {
       display: 'flex',
@@ -156,20 +156,20 @@
     if (title) {
       applyCSS(tel, style.title);
       applyCSS(tel, css.title);
-      tel.textContent = title;
+      tel.innerHTML = title;
     }
-    body.textContent = text;
+    body.innerHTML = text;
     if (footer) {
       applyCSS(fel, style.footer);
       applyCSS(fel, css.footer);
-      fel.textContent = footer;
+      fel.innerHTML = footer;
     }
     
     let closeType = 'unknown';
     const toast = {
       setText: (newText) => {
         if (!newText || !toast.exists()) return;
-        body.textContent = newText;
+        body.innerHTML = newText;
       },
       exists: () => toasts.has(id),
       close: () => {
