@@ -14,7 +14,7 @@
     console.log(`SimpleToast(v${localToast.versionString}): Publicized`);
   }
 })(this, () => {
-  const version = buildVersion(1, 13, 0);
+  const version = buildVersion(2, 0, 0);
   const style = {
     root: {
       display: 'flex',
@@ -121,7 +121,7 @@
           pending += 1;
           return;
         }
-        toast.timedout();
+        toast.close('timeout');
       });
       if (pending) {
         startTimeout();
@@ -164,8 +164,7 @@
       applyCSS(fel, css.footer);
       fel.innerHTML = footer;
     }
-    
-    let closeType = 'unknown';
+
     const safeToast = {};
     const toast = {
       setText: (newText) => {
@@ -173,21 +172,13 @@
         body.innerHTML = newText;
       },
       exists: () => toasts.has(id),
-      close: () => {
+      close: (closeType) => {
         if (!toast.exists()) return;
         root.removeChild(el);
         toasts.delete(id);
         if (typeof onClose === 'function') {
-          onClose.call(safeToast, closeType, safeToast);
+          onClose.call(safeToast, closeType || 'unknown', safeToast);
         }
-      },
-      timedout: () => {
-        closeType = 'timeout';
-        toast.close();
-      },
-      closed: () => {
-        closeType = 'dismissed';
-        toast.close();
       },
     };
     if (timeout) {
@@ -229,7 +220,7 @@
         el.insertBefore(elb, fel);
       });
     }
-    el.addEventListener('click', toast.closed);
+    el.addEventListener('click', toast.close.bind(null, 'dismissed'));
 
     root.appendChild(el);
     toasts.set(id, toast);
