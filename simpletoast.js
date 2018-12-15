@@ -14,7 +14,7 @@
     console.log(`SimpleToast(v${localToast.versionString}): Publicized`);
   }
 })(this, () => {
-  const version = buildVersion(1, 12, 0);
+  const version = buildVersion(1, 13, 0);
   const style = {
     root: {
       display: 'flex',
@@ -166,6 +166,7 @@
     }
     
     let closeType = 'unknown';
+    const safeToast = {};
     const toast = {
       setText: (newText) => {
         if (!newText || !toast.exists()) return;
@@ -177,7 +178,7 @@
         root.removeChild(el);
         toasts.delete(id);
         if (typeof onClose === 'function') {
-          onClose(toast, closeType);
+          onClose.call(safeToast, closeType, safeToast);
         }
       },
       timedout: () => {
@@ -235,7 +236,6 @@
     if (timeout) {
       startTimeout();
     }
-    const safeToast = {};
     Object.keys(blankToast).forEach((key) => safeToast[key] = toast[key]);
     return safeToast;
   }
