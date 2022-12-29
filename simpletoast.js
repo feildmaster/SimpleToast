@@ -8,13 +8,13 @@
   const localToast = factory();
   root.SimpleToast = localToast;
   console.log(`SimpleToast(v${localToast.versionString}): Loaded`);
-  // Apply to window if SimpleToast doesn't currently exist
-  if (root !== window && !(boundToast instanceof localToast)) {
+  // Apply to window if SimpleToast doesn't exist or is outdated
+  if (root !== window && (!boundToast?.version || boundToast.version < localToast.version)) {
     window.SimpleToast = localToast;
     console.log(`SimpleToast(v${localToast.versionString}): Publicized`);
   }
 })(this, () => {
-  const version = buildVersion(2, 0, 0);
+  const version = buildVersion(2, 0, 1);
   const style = {
     root: {
       display: 'flex',
