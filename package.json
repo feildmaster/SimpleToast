@@ -1,0 +1,6 @@
+{
+  "name": "simpletoast",
+  "main": "simpletoast.js",
+  "browser": "simpletoast.js",
+  "private": true,
+}
