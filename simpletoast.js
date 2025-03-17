@@ -14,7 +14,7 @@
     console.log(`SimpleToast(v${localToast.versionString}): Publicized`);
   }
 })(this, () => {
-  const version = buildVersion(2, 0, 2);
+  const version = buildVersion(2, 0, 3);
   const style = {
     root: {
       display: 'flex',
@@ -219,7 +219,7 @@
             css.button?.mouseOver,
             button.css?.mouseOver
           );
-          prev = applyCSS(hoverStyle);
+          prev = applyCSS(elb, hoverStyle);
         };
         elb.onmouseout = () => {
           applyCSS(elb, prev);
