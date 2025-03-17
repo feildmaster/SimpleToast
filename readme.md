@@ -99,7 +99,7 @@ new SimpleToast({
         title: {},
         button: {},
     },
-    timeout: 0,
+    timeout: 0, // Close toast after # milliseconds
     onClose(reason, toast) {},
 });
 
