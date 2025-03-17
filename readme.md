@@ -80,3 +80,30 @@ You can provide a single button within an object, or an array of buttons.
         ],
     });
 ```
+
+### All Options
+```javascript
+new SimpleToast({
+    title: '',
+    text: '',
+    buttons: [...button] || {
+        text: '',
+        className: '',
+        css: {},
+        onclick() {},
+    },
+    footer: '',
+    className: '',
+    css: {
+        toast: {},
+        title: {},
+        button: {},
+    },
+    timeout: 0,
+    onClose(reason, toast) {},
+});
+
+SimpleToast.version; // Version in number form
+SimpleToast.versionString; // Readable string of version
+SimpleToast.count(); // Numer of toasts open
+```
