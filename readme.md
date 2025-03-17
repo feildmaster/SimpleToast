@@ -90,19 +90,24 @@ const toast = new SimpleToast({
         text: '',
         className: '',
         css: {},
-        onclick() {
+        onclick(event, toast) {
             // this; // toast reference
         },
     },
     footer: '',
-    className: '',
+    className: '' || [''] || {
+        toast: '' || [''],
+        button: '' || [''],
+    },
     css: {
         toast: {},
         title: {},
         button: {},
     },
     timeout: 0, // Close toast after # milliseconds
-    onClose(reason, toast) {},
+    onClose(reason, toast) {
+        // this; // toast reference
+    },
 });
 
 // Methods on toast
