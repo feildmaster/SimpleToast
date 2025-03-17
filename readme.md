@@ -112,5 +112,5 @@ toast.close(reason); // Close toast for optional reason
 
 SimpleToast.version; // Version in number form
 SimpleToast.versionString; // Readable string of version
-SimpleToast.count(); // Numer of toasts open
+SimpleToast.count(); // Number of toasts open
 ```
