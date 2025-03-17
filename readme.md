@@ -83,14 +83,16 @@ You can provide a single button within an object, or an array of buttons.
 
 ### All Options
 ```javascript
-new SimpleToast({
+const toast = new SimpleToast({
     title: '',
     text: '',
     buttons: [...button] || {
         text: '',
         className: '',
         css: {},
-        onclick() {},
+        onclick() {
+            // this; // toast reference
+        },
     },
     footer: '',
     className: '',
@@ -102,6 +104,11 @@ new SimpleToast({
     timeout: 0, // Close toast after # milliseconds
     onClose(reason, toast) {},
 });
+
+// Methods on toast
+toast.setText(newText); // Change text to newText
+toast.exists(); // Does toast still exist?
+toast.close(reason); // Close toast for optional reason
 
 SimpleToast.version; // Version in number form
 SimpleToast.versionString; // Readable string of version
