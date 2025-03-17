@@ -14,7 +14,7 @@
     console.log(`SimpleToast(v${localToast.versionString}): Publicized`);
   }
 })(this, () => {
-  const version = buildVersion(2, 0, 1);
+  const version = buildVersion(2, 0, 2);
   const style = {
     root: {
       display: 'flex',
@@ -74,6 +74,16 @@
       element.style[key] = css[key];
     });
     return old;
+  }
+
+  function getClassName(clazz) {
+    if (Array.isArray(clazz)) {
+      return clazz.join(' ');
+    }
+    if (typeof clazz === 'string') {
+      return clazz;
+    }
+    return undefined;
   }
 
   const toasts = new Map();
@@ -146,8 +156,7 @@
     const body = el.appendChild(document.createElement('span'));
     const fel = el.appendChild(document.createElement('span'));
     if (className) {
-      const clazz = className.toast || className;
-      el.className = Array.isArray(clazz) ? clazz.join(' ') : (typeof clazz === 'string' ? clazz : undefined);
+      el.className = getClassName(className.toast || className);
     }
     applyCSS(el, style.toast);
     applyCSS(el, css.toast || css);
@@ -172,12 +181,12 @@
         body.innerHTML = newText;
       },
       exists: () => toasts.has(id),
-      close: (closeType) => {
+      close: (closeType = 'unknown') => {
         if (!toast.exists()) return;
         root.removeChild(el);
         toasts.delete(id);
         if (typeof onClose === 'function') {
-          onClose.call(safeToast, closeType || 'unknown', safeToast);
+          onClose.call(safeToast, closeType, safeToast);
         }
       },
     };
@@ -192,24 +201,23 @@
       buttons.forEach((button) => {
         if (!button.text) return;
         const elb = document.createElement('button');
-        if (button.className || className && className.button) {
-          const clazz = button.className || className.button;
-          elb.className = Array.isArray(clazz) ? clazz.join(' ') : clazz;
+        if (button.className || className?.button) {
+          elb.className = getClassName(button.className || className.button);
         }
         elb.innerHTML = button.text;
         applyCSS(elb, style.button);
         applyCSS(elb, css.button);
         applyCSS(elb, button.css);
         if (typeof button.onclick === 'function') {
-          elb.onclick = button.onclick;
+          elb.onclick = (e) => button.onclick.call(safeToast, e, safeToast);
         }
         let prev = {};
         elb.onmouseover = () => {
           const hoverStyle = Object.assign(
             {},
             style.button.mouseOver,
-            css.button && css.button.mouseOver,
-            button.css && button.css.mouseOver
+            css.button?.mouseOver,
+            button.css?.mouseOver
           );
           prev = applyCSS(hoverStyle);
         };
