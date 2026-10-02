@@ -183,7 +183,7 @@
       exists: () => toasts.has(id),
       close: (closeType = 'unknown') => {
         if (!toast.exists()) return;
-        root.removeChild(el);
+        el.remove();
         toasts.delete(id);
         if (typeof onClose === 'function') {
           onClose.call(safeToast, closeType, safeToast);
