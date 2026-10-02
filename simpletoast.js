@@ -177,7 +177,7 @@
     const safeToast = {};
     const toast = {
       setText: (newText) => {
-        if (!newText || !toast.exists()) return;
+        if (newText == null || !toast.exists()) return;
         body.innerHTML = newText;
       },
       exists: () => toasts.has(id),
