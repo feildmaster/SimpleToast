@@ -34,6 +34,7 @@ SimpleToast never sets inline styles. Style toasts with the classes below, or se
 | --- | --- |
 | `#AlertToast`, `.simpletoast-root` | The shared stack all toasts are added to |
 | `.simpletoast` | A toast |
+| `.simpletoast-static` | Added to a toast with `dismissOnClick: false` |
 | `.simpletoast-title` | Title (hidden when empty) |
 | `.simpletoast-body` | Text |
 | `.simpletoast-footer` | Footer (hidden when empty) |
@@ -75,6 +76,7 @@ const toast = new SimpleToast({
     },
     data: { priority: true }, // Becomes data-* attributes on the toast
     html: true, // false renders title, text, footer and button text as plain text
+    dismissOnClick: true, // false: clicking the toast (or Enter/Space on it) no longer dismisses it
     role: 'status', // 'alert' for errors
     signal: abortController.signal, // Closes the toast with reason 'aborted'
     timeout: 0, // Close toast after # milliseconds
@@ -97,7 +99,7 @@ SimpleToast.versionString; // Readable string of version
 SimpleToast.count(); // Number of toasts open
 ```
 
-Close reasons: `'timeout'`, `'dismissed'` (click, Enter, Space or Escape on the toast), `'aborted'`, or whatever was passed to
+Close reasons: `'timeout'`, `'dismissed'` (click, Enter, Space or Escape on the toast; Escape still works with `dismissOnClick: false`), `'aborted'`, or whatever was passed to
 `close()` (`'unknown'` by default).
 
 Timeouts only run while the tab is visible and focused, and while the user is not idle.

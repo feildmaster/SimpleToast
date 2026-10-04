@@ -89,6 +89,7 @@ function Toast(input) {
     signal,
     role = 'status',
     html = true,
+    dismissOnClick = true,
   } = options;
   if (!title && !text && !footer) return blankToast();
   if (signal?.aborted) return blankToast();
@@ -108,6 +109,7 @@ function Toast(input) {
 
   const el = document.createElement('div');
   el.className = classes('simpletoast', toastClass);
+  if (!dismissOnClick) el.classList.add('simpletoast-static');
   el.setAttribute('role', role);
   el.tabIndex = 0;
   if (data && typeof data === 'object') {
@@ -168,13 +170,13 @@ function Toast(input) {
   }
 
   el.addEventListener('click', (event) => {
-    if (event.target.closest('button')) return;
+    if (!dismissOnClick || event.target.closest('button')) return;
     handle.close('dismissed');
   });
   el.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       handle.close('dismissed');
-    } else if ((event.key === 'Enter' || event.key === ' ') && event.target === el) {
+    } else if (dismissOnClick && (event.key === 'Enter' || event.key === ' ') && event.target === el) {
       event.preventDefault();
       handle.close('dismissed');
     }

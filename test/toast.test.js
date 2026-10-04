@@ -143,6 +143,58 @@ describe('toast', () => {
       expect(onclick.mock.contexts[0]).toBe(toast);
     });
 
+    describe('with dismissOnClick false', () => {
+      const keydown = (target, key) => {
+        const event = new page.window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+        target.dispatchEvent(event);
+        return event;
+      };
+
+      it('does not dismiss on a click of the toast', () => {
+        const toast = SimpleToast({ text: 'a', dismissOnClick: false });
+        toast.element.click();
+        toast.element.querySelector('.simpletoast-body').click();
+        expect(toast.exists()).toBe(true);
+      });
+
+      it('does not dismiss on Enter or Space, and leaves the keys alone', () => {
+        const toast = SimpleToast({ text: 'a', dismissOnClick: false });
+        for (const key of ['Enter', ' ']) {
+          expect(keydown(toast.element, key).defaultPrevented).toBe(false);
+        }
+        expect(toast.exists()).toBe(true);
+      });
+
+      it('still dismisses on Escape', () => {
+        const toast = SimpleToast({ text: 'a', dismissOnClick: false });
+        keydown(toast.element, 'Escape');
+        expect(toast.exists()).toBe(false);
+      });
+
+      it('still closes through buttons, close() and signal', () => {
+        const controller = new page.window.AbortController();
+        const viaButton = SimpleToast({
+          text: 'a',
+          dismissOnClick: false,
+          buttons: { text: 'b', onclick() { this.close('button'); } },
+        });
+        viaButton.element.querySelector('button').click();
+        expect(viaButton.exists()).toBe(false);
+        const viaClose = SimpleToast({ text: 'a', dismissOnClick: false });
+        viaClose.close();
+        expect(viaClose.exists()).toBe(false);
+        const viaSignal = SimpleToast({ text: 'a', dismissOnClick: false, signal: controller.signal });
+        controller.abort();
+        expect(viaSignal.exists()).toBe(false);
+      });
+
+      it('marks the toast so the stylesheet can drop the pointer cursor', () => {
+        expect(SimpleToast({ text: 'a', dismissOnClick: false }).element.classList.contains('simpletoast-static')).toBe(true);
+        expect(SimpleToast('a').element.classList.contains('simpletoast-static')).toBe(false);
+        expect(SimpleToast({ text: 'a', dismissOnClick: true }).element.classList.contains('simpletoast-static')).toBe(false);
+      });
+    });
+
     it('lets a button close the toast with its own reason', () => {
       const onClose = vi.fn();
       const toast = SimpleToast({

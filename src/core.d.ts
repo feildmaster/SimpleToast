@@ -27,6 +27,7 @@ export interface SimpleToastOptions {
   className?: SimpleToastClassName | { toast?: SimpleToastClassName; button?: SimpleToastClassName };
   data?: Record<string, string | number | boolean>;
   html?: boolean;
+  dismissOnClick?: boolean;
   role?: SimpleToastRole;
   signal?: AbortSignal;
   onClose?(this: SimpleToastHandle, reason: SimpleToastCloseReason, toast: SimpleToastHandle): void;

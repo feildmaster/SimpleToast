@@ -1,5 +1,5 @@
 ((root) => {
-const css = ".simpletoast-root {\n  display: flex;\n  flex-direction: column-reverse;\n  align-items: flex-end;\n  position: fixed;\n  bottom: var(--simpletoast-bottom, 0);\n  right: var(--simpletoast-right, 0);\n  z-index: var(--simpletoast-z-index, 1000);\n  white-space: pre-wrap;\n}\n\n.simpletoast {\n  box-sizing: border-box;\n  max-width: var(--simpletoast-max-width, 320px);\n  margin: var(--simpletoast-gap, 4px);\n  padding: 5px 8px;\n  border-radius: 3px;\n  font-family: var(--simpletoast-font, cursive, sans-serif);\n  font-size: 13px;\n  cursor: pointer;\n  color: var(--simpletoast-color, #fafeff);\n  text-shadow: var(--simpletoast-shadow, #3498db 1px 2px 1px);\n  background: var(--simpletoast-bg, #2980b9);\n\n  &:focus-visible {\n    outline: 2px solid var(--simpletoast-color, #fafeff);\n    outline-offset: 1px;\n  }\n}\n\n.simpletoast-title {\n  display: block;\n  font-size: 15px;\n  font-style: italic;\n}\n\n.simpletoast-footer {\n  display: block;\n  font-size: 10px;\n}\n\n.simpletoast-title:empty,\n.simpletoast-footer:empty {\n  display: none;\n}\n\n.simpletoast-button {\n  height: 20px;\n  margin: -3px 0 0 3px;\n  padding: 0 5px;\n  vertical-align: middle;\n  white-space: nowrap;\n  border: 1px solid rgba(27, 31, 35, 0.2);\n  border-radius: 10px;\n  font-size: 11px;\n  color: inherit;\n  text-shadow: #173646 0 0 3px;\n  background: var(--simpletoast-button-bg, #2c9fea);\n  cursor: pointer;\n\n  &:hover {\n    border-color: rgba(27, 31, 35, 0.35);\n    background: var(--simpletoast-button-bg-hover, #149fff);\n  }\n}\n";
+const css = ".simpletoast-root {\n  display: flex;\n  flex-direction: column-reverse;\n  align-items: flex-end;\n  position: fixed;\n  bottom: var(--simpletoast-bottom, 0);\n  right: var(--simpletoast-right, 0);\n  z-index: var(--simpletoast-z-index, 1000);\n  white-space: pre-wrap;\n}\n\n.simpletoast {\n  box-sizing: border-box;\n  max-width: var(--simpletoast-max-width, 320px);\n  margin: var(--simpletoast-gap, 4px);\n  padding: 5px 8px;\n  border-radius: 3px;\n  font-family: var(--simpletoast-font, cursive, sans-serif);\n  font-size: 13px;\n  cursor: pointer;\n  color: var(--simpletoast-color, #fafeff);\n  text-shadow: var(--simpletoast-shadow, #3498db 1px 2px 1px);\n  background: var(--simpletoast-bg, #2980b9);\n\n  &.simpletoast-static {\n    cursor: default;\n  }\n\n  &:focus-visible {\n    outline: 2px solid var(--simpletoast-color, #fafeff);\n    outline-offset: 1px;\n  }\n}\n\n.simpletoast-title {\n  display: block;\n  font-size: 15px;\n  font-style: italic;\n}\n\n.simpletoast-footer {\n  display: block;\n  font-size: 10px;\n}\n\n.simpletoast-title:empty,\n.simpletoast-footer:empty {\n  display: none;\n}\n\n.simpletoast-button {\n  height: 20px;\n  margin: -3px 0 0 3px;\n  padding: 0 5px;\n  vertical-align: middle;\n  white-space: nowrap;\n  border: 1px solid rgba(27, 31, 35, 0.2);\n  border-radius: 10px;\n  font-size: 11px;\n  color: inherit;\n  text-shadow: #173646 0 0 3px;\n  background: var(--simpletoast-button-bg, #2c9fea);\n  cursor: pointer;\n\n  &:hover {\n    border-color: rgba(27, 31, 35, 0.35);\n    background: var(--simpletoast-button-bg-hover, #149fff);\n  }\n}\n";
 
 const ROOT_ID = 'AlertToast';
 
@@ -96,6 +96,7 @@ function Toast(input) {
     signal,
     role = 'status',
     html = true,
+    dismissOnClick = true,
   } = options;
   if (!title && !text && !footer) return blankToast();
   if (signal?.aborted) return blankToast();
@@ -115,6 +116,7 @@ function Toast(input) {
 
   const el = document.createElement('div');
   el.className = classes('simpletoast', toastClass);
+  if (!dismissOnClick) el.classList.add('simpletoast-static');
   el.setAttribute('role', role);
   el.tabIndex = 0;
   if (data && typeof data === 'object') {
@@ -175,13 +177,13 @@ function Toast(input) {
   }
 
   el.addEventListener('click', (event) => {
-    if (event.target.closest('button')) return;
+    if (!dismissOnClick || event.target.closest('button')) return;
     handle.close('dismissed');
   });
   el.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       handle.close('dismissed');
-    } else if ((event.key === 'Enter' || event.key === ' ') && event.target === el) {
+    } else if (dismissOnClick && (event.key === 'Enter' || event.key === ' ') && event.target === el) {
       event.preventDefault();
       handle.close('dismissed');
     }

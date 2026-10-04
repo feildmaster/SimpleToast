@@ -35,6 +35,7 @@ describe('types', () => {
     expectTypeOf<SimpleToastOptions['idle']>().toEqualTypeOf<number | false | undefined>();
     expectTypeOf<SimpleToastOptions['signal']>().toEqualTypeOf<AbortSignal | undefined>();
     expectTypeOf<SimpleToastOptions['html']>().toEqualTypeOf<boolean | undefined>();
+    expectTypeOf<SimpleToastOptions['dismissOnClick']>().toEqualTypeOf<boolean | undefined>();
     expectTypeOf<SimpleToastOptions['role']>().toEqualTypeOf<SimpleToastRole | undefined>();
     expectTypeOf<'alert'>().toExtend<SimpleToastRole>();
     expectTypeOf<'alertdialog'>().toExtend<SimpleToastRole>();
