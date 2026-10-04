@@ -1,0 +1,257 @@
+import { afterEach, describe, expect, it } from 'vitest';
+import { createPage, sources } from './helpers.js';
+
+describe('root and publishing', () => {
+  let page;
+  afterEach(() => page?.close());
+
+  describe('the root', () => {
+    it('is created empty on load as a polite live region', () => {
+      page = createPage();
+      page.load();
+      const root = page.root();
+      expect(root.childElementCount).toBe(0);
+      expect(root.classList.contains('simpletoast-root')).toBe(true);
+      expect(root.getAttribute('aria-live')).toBe('polite');
+      expect(root.getAttribute('aria-relevant')).toBe('additions');
+      expect(root.hasAttribute('style')).toBe(false);
+    });
+
+    it('adopts an existing root and keeps its attributes', () => {
+      page = createPage('<!doctype html><body><div id="AlertToast" aria-live="assertive"></div></body>');
+      const existing = page.root();
+      const SimpleToast = page.load();
+      expect(page.root()).toBe(existing);
+      expect(existing.getAttribute('aria-live')).toBe('assertive');
+      expect(existing.getAttribute('aria-relevant')).toBe('additions');
+      expect(existing.classList.contains('simpletoast-root')).toBe(true);
+      expect(SimpleToast('a').element.parentElement).toBe(existing);
+    });
+
+    it('is shared between two copies of the same version', () => {
+      page = createPage();
+      page.load(sources.injecting, { sandbox: true });
+      const first = page.window.SimpleToast;
+      page.load(sources.injecting, { sandbox: true });
+      expect(page.document.querySelectorAll('#AlertToast').length).toBe(1);
+      expect(first('a').element.parentElement).toBe(page.root());
+    });
+
+    it('waits for the body, then moves toasts into a root another script made meanwhile', () => {
+      page = createPage();
+      page.document.body.remove();
+      const SimpleToast = page.load();
+      const early = SimpleToast('early');
+      expect(early.exists()).toBe(true);
+      expect(page.root()).toBe(null);
+
+      const body = page.document.createElement('body');
+      page.document.documentElement.appendChild(body);
+      const other = page.document.createElement('div');
+      other.id = 'AlertToast';
+      body.appendChild(other);
+      page.document.dispatchEvent(new page.window.Event('DOMContentLoaded'));
+
+      expect(page.root()).toBe(other);
+      expect(other.contains(early.element)).toBe(true);
+      expect(early.exists()).toBe(true);
+      expect(SimpleToast('later').element.parentElement).toBe(other);
+    });
+
+    it('keeps timers working for toasts before and after the root is swapped', () => {
+      page = createPage();
+      page.document.body.remove();
+      const SimpleToast = page.load();
+      const early = SimpleToast({ text: 'early', timeout: 100, idle: false });
+
+      const body = page.document.createElement('body');
+      page.document.documentElement.appendChild(body);
+      const other = page.document.createElement('div');
+      other.id = 'AlertToast';
+      body.appendChild(other);
+      page.document.dispatchEvent(new page.window.Event('DOMContentLoaded'));
+
+      const late = SimpleToast({ text: 'late', timeout: 200, idle: false });
+      page.clock.tick(100);
+      expect(early.exists()).toBe(false);
+      expect(late.exists()).toBe(true);
+      page.clock.tick(100);
+      expect(late.exists()).toBe(false);
+    });
+
+    it('attaches its own root to the body once it exists', () => {
+      page = createPage();
+      page.document.body.remove();
+      const SimpleToast = page.load();
+      const early = SimpleToast('early');
+      page.document.documentElement.appendChild(page.document.createElement('body'));
+      page.document.dispatchEvent(new page.window.Event('DOMContentLoaded'));
+      expect(page.root().parentElement).toBe(page.document.body);
+      expect(early.exists()).toBe(true);
+      early.close();
+      expect(early.exists()).toBe(false);
+    });
+
+    it('does nothing in a frame', () => {
+      page = createPage('<!doctype html><body><iframe></iframe></body>');
+      const frame = page.document.querySelector('iframe').contentWindow;
+      frame.eval(sources.injecting);
+      expect(frame.SimpleToast).toBeUndefined();
+      expect(frame.document.getElementById('AlertToast')).toBe(null);
+    });
+  });
+
+  describe('stylesheet', () => {
+    const styles = () => page.document.querySelectorAll('style[data-simpletoast-stylesheet]');
+
+    it('is injected once by the default build', () => {
+      page = createPage();
+      page.load();
+      expect(styles().length).toBe(1);
+      expect(styles()[0].textContent).toBe(sources.css);
+      expect(styles()[0].dataset.version).toBe('3.0');
+    });
+
+    it('is not injected again by a second copy', () => {
+      page = createPage();
+      page.load(sources.injecting, { sandbox: true });
+      page.load(sources.injecting, { sandbox: true });
+      expect(styles().length).toBe(1);
+    });
+
+    it('is not injected by the core build', () => {
+      page = createPage();
+      page.load(sources.core);
+      expect(styles().length).toBe(0);
+    });
+
+    it('is replaced by a newer version but not by an older one', () => {
+      page = createPage();
+      const style = page.document.createElement('style');
+      style.dataset.simpletoastStylesheet = '';
+      style.dataset.version = '2.5';
+      style.textContent = 'old';
+      page.document.head.appendChild(style);
+      page.load();
+      expect(styles().length).toBe(1);
+      expect(style.textContent).toBe(sources.css);
+
+      style.dataset.version = '9.0';
+      style.textContent = 'newer';
+      page.load(sources.injecting, { sandbox: true });
+      expect(style.textContent).toBe('newer');
+    });
+
+    it('ships the same css as simpletoast.css', () => {
+      expect(sources.injecting).toContain(JSON.stringify(sources.css));
+      expect(sources.core).not.toContain('.simpletoast-root');
+      expect(sources.core).not.toMatch(/stylesheet/i);
+    });
+  });
+
+  describe('publishing', () => {
+    it('sets window.SimpleToast when nothing exists', () => {
+      page = createPage();
+      const SimpleToast = page.load();
+      expect(page.window.SimpleToast).toBe(SimpleToast);
+      expect(SimpleToast.versionString).toBe('3.0');
+      expect(SimpleToast.version).toBe(3000000000);
+    });
+
+    it('lets a sandboxed copy publish to window when it is newer', () => {
+      page = createPage();
+      page.load(sources.legacy, { sandbox: true });
+      expect(page.window.SimpleToast.versionString).toBe('2.0.3');
+      page.load(sources.injecting, { sandbox: true });
+      expect(page.window.SimpleToast.versionString).toBe('3.0');
+    });
+
+    it('keeps the newest copy when an older sandboxed copy loads later', () => {
+      page = createPage();
+      page.load(sources.injecting, { sandbox: true });
+      page.load(sources.legacy, { sandbox: true });
+      expect(page.window.SimpleToast.versionString).toBe('3.0');
+    });
+
+    it('keeps the newest copy when an unsandboxed copy loads over an older one', () => {
+      page = createPage();
+      page.load(sources.legacy);
+      page.load(sources.injecting);
+      expect(page.window.SimpleToast.versionString).toBe('3.0');
+    });
+
+    it('does not replace a newer global with an unsandboxed copy of itself', () => {
+      page = createPage();
+      const first = page.load();
+      page.load();
+      expect(page.window.SimpleToast).toBe(first);
+    });
+
+    it('does not replace a newer global', () => {
+      page = createPage();
+      page.window.SimpleToast = Object.assign(() => {}, { version: 9000000000, versionString: '9.0' });
+      const kept = page.window.SimpleToast;
+      page.load();
+      expect(page.window.SimpleToast).toBe(kept);
+    });
+
+    it('replaces an older global that has no versionString', () => {
+      page = createPage();
+      page.window.SimpleToast = Object.assign(() => {}, { version: 2000000000 });
+      page.load();
+      expect(page.window.SimpleToast.versionString).toBe('3.0');
+    });
+
+    it('is frozen', () => {
+      page = createPage();
+      expect(Object.isFrozen(page.load())).toBe(true);
+    });
+  });
+
+  describe('mixed generations', () => {
+    it('lets the new version adopt a root built by 2.0.3', () => {
+      page = createPage();
+      page.load(sources.legacy, { sandbox: true });
+      const legacy = page.window.SimpleToast;
+      const oldToast = legacy('old');
+      const root = page.root();
+      expect(root.hasAttribute('style')).toBe(true);
+
+      const SimpleToast = page.load(sources.injecting, { sandbox: true });
+      expect(page.root()).toBe(root);
+      expect(root.classList.contains('simpletoast-root')).toBe(true);
+      expect(root.getAttribute('aria-live')).toBe('polite');
+
+      const newToast = SimpleToast('new');
+      expect(newToast.element.parentElement).toBe(root);
+      expect(root.children.length).toBe(2);
+      newToast.close();
+      oldToast.close();
+      expect(root.children.length).toBe(0);
+    });
+
+    it('lets 2.0.3 adopt a root built by the new version', () => {
+      page = createPage();
+      const SimpleToast = page.load(sources.injecting, { sandbox: true });
+      const newToast = SimpleToast('new');
+      const root = page.root();
+
+      page.load(sources.legacy, { sandbox: true });
+      const oldToast = page.window.SimpleToast === SimpleToast ? null : page.window.SimpleToast('old');
+      expect(oldToast).toBe(null);
+      expect(page.document.querySelectorAll('#AlertToast').length).toBe(1);
+      expect(root.contains(newToast.element)).toBe(true);
+    });
+
+    it('lets a 2.0.3 toast close even after the new version loaded', () => {
+      page = createPage();
+      page.load(sources.legacy);
+      const legacy = page.window.SimpleToast;
+      const oldToast = legacy('old');
+      page.load(sources.injecting, { sandbox: true });
+      oldToast.close();
+      expect(oldToast.exists()).toBe(false);
+      expect(page.root().children.length).toBe(0);
+    });
+  });
+});

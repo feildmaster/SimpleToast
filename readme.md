@@ -2,120 +2,123 @@
 
 Small (but powerful) toast library.
 
+## Builds
+
+| File | Use |
+| --- | --- |
+| `dist/simpletoast.js` | Batteries included: timeouts, and it injects its stylesheet on first load. |
+| `dist/simpletoast.core.js` | Toasts only, with no timeouts and no stylesheet. Load `dist/simpletoast.css` yourself, or write your own. |
+| `dist/simpletoast.css` | The default styles as a plain file. |
+| `dist/simpletoast.d.ts` | Type definitions for `simpletoast.js`. |
+| `dist/simpletoast.core.d.ts` | Type definitions for `simpletoast.core.js` (no `timeout`, `pauseOnHover` or `idle`). |
+
+`npm run build` regenerates all of them from `src/`.
+
 ## Usage
 
-Text (required):
-
 ```javascript
-    SimpleToast('Text');
-    SimpleToast({text: 'Text'});
+SimpleToast('Text');
+SimpleToast({ text: 'Text' });
+SimpleToast({ title: 'Title', text: 'Text' });
+SimpleToast({ title: 'Title only' });
 ```
 
-Title with text:
+### Styling
 
-```javascript
-    SimpleToast({title: 'Title', text: 'Text'});
-```
+SimpleToast never sets inline styles. Style toasts with the classes below, or set the custom properties on
+`.simpletoast-root` / `.simpletoast`: `--simpletoast-bg`, `--simpletoast-color`, `--simpletoast-font`,
+`--simpletoast-shadow`, `--simpletoast-max-width`, `--simpletoast-gap`, `--simpletoast-bottom`, `--simpletoast-right`,
+`--simpletoast-z-index`, `--simpletoast-button-bg`, `--simpletoast-button-bg-hover`.
 
-### CSS
+| Class | Element |
+| --- | --- |
+| `#AlertToast`, `.simpletoast-root` | The shared stack all toasts are added to |
+| `.simpletoast` | A toast |
+| `.simpletoast-title` | Title (hidden when empty) |
+| `.simpletoast-body` | Text |
+| `.simpletoast-footer` | Footer (hidden when empty) |
+| `.simpletoast-button` | Buttons |
 
-Targets:
-
-* css (or) css.toast: Applies to toast
-* css.title: Applies to title
-* css.button: Applies to buttons
-
-```javascript
-    // Apply a red-ish background
-    SimpleToast({text: 'Text', css: {background: '#c8354e'}});
-
-    SimpleToast({
-        css: {
-            // Applies to toast (unless toast is present)
-            toast: {
-                // Applies to toast
-            },
-            title: {
-                // Applies to title
-            },
-            button: {
-                // Applies to buttons
-                mouseOver: {
-                    // Applies to buttons when moused over
-                }
-            },
-        },
-    });
-```
+Use `className` to add your own classes, and `toast.element` to reach the element directly.
 
 ### Buttons
 
-You can provide a single button within an object, or an array of buttons.
+Buttons do not dismiss the toast. Call `toast.close()` from the handler to close it.
 
 ```javascript
-    // Single button
-    SimpleToast({
-        buttons: {
-            text: 'Text', // Required
-            onclick: () => {
-                // Runs on click
-            },
-            css: {
-                // Applies to button
-                mouseOver: {
-                    // Applies to button when moused over
-                },
-            },
-        },
-    });
-    // Multiple Buttons
-    SimpleToast({
-        buttons: [
-            {
-                // Button data goes here
-            },
-            {
-                // Button data goes here
-            },
-        ],
-    });
+SimpleToast({
+    text: 'Text',
+    buttons: [
+        { text: 'Undo', onclick(event, toast) { toast.close('undo'); } },
+        { text: 'Other', className: 'extra' },
+    ],
+});
 ```
 
 ### All Options
+
 ```javascript
 const toast = new SimpleToast({
     title: '',
     text: '',
+    footer: '',
     buttons: [...button] || {
         text: '',
         className: '',
-        css: {},
         onclick(event, toast) {
             // this; // toast reference
         },
     },
-    footer: '',
     className: '' || [''] || {
         toast: '' || [''],
         button: '' || [''],
     },
-    css: {
-        toast: {},
-        title: {},
-        button: {},
-    },
+    data: { priority: true }, // Becomes data-* attributes on the toast
+    html: true, // false renders title, text, footer and button text as plain text
+    role: 'status', // 'alert' for errors
+    signal: abortController.signal, // Closes the toast with reason 'aborted'
     timeout: 0, // Close toast after # milliseconds
+    pauseOnHover: true, // Timer pauses while the toast is hovered or focused
+    idle: 30000, // Timer holds after # milliseconds without input, false to disable
     onClose(reason, toast) {
         // this; // toast reference
     },
 });
 
-// Methods on toast
-toast.setText(newText); // Change text to newText
-toast.exists(); // Does toast still exist?
+toast.element; // The toast's DOM element
+toast.setText(newText); // Change text to newText ('' clears it)
+toast.exists(); // Is the toast still on the page?
 toast.close(reason); // Close toast for optional reason
+
+toast.element.addEventListener('simpletoast:close', (event) => event.detail.reason);
 
 SimpleToast.version; // Version in number form
 SimpleToast.versionString; // Readable string of version
 SimpleToast.count(); // Number of toasts open
 ```
+
+Close reasons: `'timeout'`, `'dismissed'` (click, Enter, Space or Escape on the toast), `'aborted'`, or whatever was passed to
+`close()` (`'unknown'` by default).
+
+Timeouts only run while the tab is visible and focused, and while the user is not idle.
+
+Timeouts are a feature of `simpletoast.js`. The core build ignores `timeout`, `pauseOnHover` and `idle` without any warning.
+
+### Events
+
+`#AlertToast` receives `simpletoast:add` and `simpletoast:close`. `event.detail.toast` is the handle. `simpletoast:add`
+also has `event.detail.options`, the options the toast was created with, and `simpletoast:close` has `event.detail.reason`.
+Features such as timeouts are built on these events.
+
+The toast's own element receives the same `simpletoast:close` event with the same detail. It does not bubble, so a
+listener on the root hears each close once.
+
+### Accessibility
+
+The root is a polite live region and each toast has `role="status"`. Toasts are focusable and are not given focus
+automatically. Content is HTML by default, so images need `alt` text, and the title is announced as part of the toast.
+
+### Notes
+
+* Only the top frame gets SimpleToast; nothing is defined in iframes.
+* The `css` option from 2.x is gone. Use classes, custom properties or `toast.element`.
