@@ -309,6 +309,32 @@ describe('toast', () => {
       expect(close.mock.calls[0][0].detail).toEqual({ toast, reason: 'why' });
     });
 
+    it('bubbles the root events to the document, once each', () => {
+      const seen = [];
+      page.document.addEventListener('simpletoast:add', () => seen.push('add'));
+      page.document.addEventListener('simpletoast:close', () => seen.push('close'));
+      SimpleToast('a').close();
+      expect(seen).toEqual(['add', 'close']);
+    });
+
+    it('holds the add event until the toast is in the document', () => {
+      page.close();
+      page = createPage();
+      page.document.body.remove();
+      SimpleToast = page.load();
+      const seen = [];
+      page.document.addEventListener('simpletoast:add', (event) => seen.push(event.detail.toast.element.isConnected));
+      const first = SimpleToast('first');
+      const second = SimpleToast('second');
+      second.close();
+      expect(seen).toEqual([]);
+
+      page.document.documentElement.appendChild(page.document.createElement('body'));
+      page.document.dispatchEvent(new page.window.Event('DOMContentLoaded'));
+      expect(seen).toEqual([true]);
+      expect(first.exists()).toBe(true);
+    });
+
     it('passes the options the toast was created with in the add event', () => {
       const details = [];
       page.root().addEventListener('simpletoast:add', (event) => details.push(event.detail.options));

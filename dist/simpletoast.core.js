@@ -2,13 +2,17 @@
 const ROOT_ID = 'AlertToast';
 
 let rootElement = null;
-const listeners = [];
+const pending = [];
 
 function prepareRoot(el) {
   el.classList.add('simpletoast-root');
   if (!el.hasAttribute('aria-live')) el.setAttribute('aria-live', 'polite');
   if (!el.hasAttribute('aria-relevant')) el.setAttribute('aria-relevant', 'additions');
   return el;
+}
+
+function flush() {
+  pending.splice(0).forEach((callback) => callback(rootElement));
 }
 
 function initRoot() {
@@ -29,17 +33,25 @@ function initRoot() {
     if (other) {
       prepareRoot(other).append(...el.childNodes);
       rootElement = other;
-      listeners.forEach(([type, listener]) => other.addEventListener(type, listener));
-      return;
+    } else {
+      document.body.appendChild(el);
     }
-    document.body.appendChild(el);
+    flush();
   }, { once: true });
 }
 
 const getRoot = () => rootElement;
 
-function emit(target, type, detail) {
-  target.dispatchEvent(new CustomEvent(type, { detail }));
+function whenConnected(callback) {
+  if (rootElement.isConnected) {
+    callback(rootElement);
+  } else {
+    pending.push(callback);
+  }
+}
+
+function emit(target, type, detail, bubbles = false) {
+  target.dispatchEvent(new CustomEvent(type, { detail, bubbles }));
 }
 
 const version = { major: 3, minor: 0, patch: 0 };
@@ -144,7 +156,7 @@ function Toast(input) {
       el.remove();
       handles.delete(handle);
       emit(el, 'simpletoast:close', { toast: handle, reason });
-      emit(getRoot(), 'simpletoast:close', { toast: handle, reason });
+      emit(getRoot(), 'simpletoast:close', { toast: handle, reason }, true);
       if (typeof onClose === 'function') {
         onClose.call(handle, reason, handle);
       }
@@ -186,7 +198,10 @@ function Toast(input) {
 
   root.appendChild(el);
   handles.add(handle);
-  emit(root, 'simpletoast:add', { toast: handle, options });
+  whenConnected((connectedRoot) => {
+    if (closed) return;
+    emit(connectedRoot, 'simpletoast:add', { toast: handle, options }, true);
+  });
   return handle;
 }
 

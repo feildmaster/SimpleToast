@@ -1,3 +1,4 @@
+((root) => {
 const DEFAULT_IDLE = 30000;
 const MARK = 'data-simpletoast-timed';
 const INPUT_EVENTS = ['pointerdown', 'pointermove', 'keydown', 'touchstart', 'wheel'];
@@ -96,7 +97,7 @@ function bindPresence(timer, el) {
   });
 }
 
-export function installTimers() {
+function installTimers() {
   document.addEventListener('simpletoast:add', (event) => {
     const { toast, options } = event.detail;
     const el = toast.element;
@@ -109,3 +110,6 @@ export function installTimers() {
     startTimer(timer);
   });
 }
+
+installTimers();
+})(this);

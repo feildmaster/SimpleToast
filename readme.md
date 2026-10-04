@@ -8,9 +8,11 @@ Small (but powerful) toast library.
 | --- | --- |
 | `dist/simpletoast.js` | Batteries included: timeouts, and it injects its stylesheet on first load. |
 | `dist/simpletoast.core.js` | Toasts only, with no timeouts and no stylesheet. Load `dist/simpletoast.css` yourself, or write your own. |
+| `dist/simpletoast.timers.js` | Add-on that gives `simpletoast.core.js` timeouts. Load it before or after core. |
 | `dist/simpletoast.css` | The default styles as a plain file. |
 | `dist/simpletoast.d.ts` | Type definitions for `simpletoast.js`. |
 | `dist/simpletoast.core.d.ts` | Type definitions for `simpletoast.core.js` (no `timeout`, `pauseOnHover` or `idle`). |
+| `dist/simpletoast.timers.d.ts` | Adds `timeout`, `pauseOnHover` and `idle` to the core types. Import it next to `simpletoast.core.d.ts`. |
 
 `npm run build` regenerates all of them from `src/`.
 
@@ -104,13 +106,17 @@ Close reasons: `'timeout'`, `'dismissed'` (click, Enter, Space or Escape on the 
 
 Timeouts only run while the tab is visible and focused, and while the user is not idle.
 
-Timeouts are a feature of `simpletoast.js`. The core build ignores `timeout`, `pauseOnHover` and `idle` without any warning.
+Timeouts are a feature of `simpletoast.js` and of the `simpletoast.timers.js` add-on. The core build alone ignores `timeout`,
+`pauseOnHover` and `idle` without any warning.
 
 ### Events
 
-`#AlertToast` receives `simpletoast:add` and `simpletoast:close`. `event.detail.toast` is the handle. `simpletoast:add`
+`#AlertToast` receives `simpletoast:add` and `simpletoast:close`. Both bubble, so `document` can listen too. `event.detail.toast` is the handle. `simpletoast:add`
 also has `event.detail.options`, the options the toast was created with, and `simpletoast:close` has `event.detail.reason`.
-Features such as timeouts are built on these events.
+Features such as timeouts are built on these events (the timers add-on only listens on `document`).
+
+`simpletoast:add` fires once the toast is in the document. A toast shown before `<body>` exists gets its event when the page
+loads. A toast closed before then never fires `simpletoast:add`.
 
 The toast's own element receives the same `simpletoast:close` event with the same detail. It does not bubble, so a
 listener on the root hears each close once.

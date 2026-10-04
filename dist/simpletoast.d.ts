@@ -1,9 +1,3 @@
-export * from './simpletoast.core';
+import './simpletoast.timers';
 
-declare module './simpletoast.core' {
-  interface SimpleToastOptions {
-    timeout?: number;
-    pauseOnHover?: boolean;
-    idle?: number | false;
-  }
-}
+export * from './simpletoast.core';

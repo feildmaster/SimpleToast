@@ -1,5 +1,5 @@
 import { emit } from './events.js';
-import { getRoot } from './root.js';
+import { getRoot, whenConnected } from './root.js';
 import { versionNumber, versionString } from './version.js';
 
 const handles = new Set();
@@ -86,7 +86,7 @@ function Toast(input) {
       el.remove();
       handles.delete(handle);
       emit(el, 'simpletoast:close', { toast: handle, reason });
-      emit(getRoot(), 'simpletoast:close', { toast: handle, reason });
+      emit(getRoot(), 'simpletoast:close', { toast: handle, reason }, true);
       if (typeof onClose === 'function') {
         onClose.call(handle, reason, handle);
       }
@@ -128,7 +128,10 @@ function Toast(input) {
 
   root.appendChild(el);
   handles.add(handle);
-  emit(root, 'simpletoast:add', { toast: handle, options });
+  whenConnected((connectedRoot) => {
+    if (closed) return;
+    emit(connectedRoot, 'simpletoast:add', { toast: handle, options }, true);
+  });
   return handle;
 }
 

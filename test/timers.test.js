@@ -203,6 +203,96 @@ describe('timeouts', () => {
     });
   });
 
+  describe('as an add-on to core', () => {
+    const setup = (order) => {
+      page.close();
+      page = createPage();
+      page.window.document.hasFocus = () => true;
+      order.forEach((source) => page.load(source, { sandbox: true }));
+      return page.window.SimpleToast;
+    };
+
+    it.each([
+      ['core first', ['core', 'timers']],
+      ['add-on first', ['timers', 'core']],
+    ])('closes a timed toast with %s', (_, order) => {
+      const Toast = setup(order.map((key) => sources[key]));
+      const onClose = vi.fn();
+      const toast = Toast({ text: 'a', timeout: 100, idle: false, onClose });
+      tick(99);
+      expect(toast.exists()).toBe(true);
+      tick(1);
+      expect(toast.exists()).toBe(false);
+      expect(onClose.mock.calls[0][0]).toBe('timeout');
+    });
+
+    it('pauses on hover and resumes', () => {
+      const Toast = setup([sources.core, sources.timers]);
+      const toast = Toast({ text: 'a', timeout: 100, idle: false });
+      tick(60);
+      page.fire(toast.element, 'pointerenter');
+      tick(10000);
+      expect(toast.exists()).toBe(true);
+      page.fire(toast.element, 'pointerleave');
+      tick(40);
+      expect(toast.exists()).toBe(false);
+    });
+
+    it('does nothing for toasts without a timeout', () => {
+      const Toast = setup([sources.core, sources.timers]);
+      const toast = Toast('a');
+      tick(100000);
+      expect(toast.exists()).toBe(true);
+      expect(page.clock.countTimers()).toBe(0);
+    });
+
+    it('runs once when the all-in-one build is loaded as well', () => {
+      const Toast = setup([sources.core, sources.timers, sources.injecting]);
+      const onClose = vi.fn();
+      Toast({ text: 'a', timeout: 100, idle: false, onClose });
+      expect(page.clock.countTimers()).toBe(1);
+      tick(100);
+      expect(onClose).toHaveBeenCalledOnce();
+    });
+
+    it('runs once when the add-on is loaded twice', () => {
+      const Toast = setup([sources.core, sources.timers, sources.timers]);
+      Toast({ text: 'a', timeout: 100, idle: false });
+      expect(page.clock.countTimers()).toBe(1);
+    });
+
+    it('starts the timeout of a toast shown before the body exists once it is attached', () => {
+      page.close();
+      page = createPage();
+      page.window.document.hasFocus = () => true;
+      page.document.body.remove();
+      page.load(sources.core, { sandbox: true });
+      page.load(sources.timers, { sandbox: true });
+      const toast = page.window.SimpleToast({ text: 'early', timeout: 100, idle: false });
+      tick(10000);
+      expect(toast.exists()).toBe(true);
+
+      page.document.documentElement.appendChild(page.document.createElement('body'));
+      page.document.dispatchEvent(new page.window.Event('DOMContentLoaded'));
+      tick(99);
+      expect(toast.exists()).toBe(true);
+      tick(1);
+      expect(toast.exists()).toBe(false);
+    });
+
+    it('is ignored by a toast that closes before it is attached', () => {
+      page.close();
+      page = createPage();
+      page.document.body.remove();
+      page.load(sources.core, { sandbox: true });
+      page.load(sources.timers, { sandbox: true });
+      page.window.SimpleToast({ text: 'early', timeout: 100, idle: false }).close();
+      page.document.documentElement.appendChild(page.document.createElement('body'));
+      page.document.dispatchEvent(new page.window.Event('DOMContentLoaded'));
+      expect(page.clock.countTimers()).toBe(0);
+    });
+  });
+
   describe('listeners', () => {
     it('are not registered until a toast has a timeout', () => {
       const spy = vi.spyOn(page.window, 'addEventListener');

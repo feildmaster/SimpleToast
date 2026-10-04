@@ -1,13 +1,17 @@
 const ROOT_ID = 'AlertToast';
 
 let rootElement = null;
-const listeners = [];
+const pending = [];
 
 function prepareRoot(el) {
   el.classList.add('simpletoast-root');
   if (!el.hasAttribute('aria-live')) el.setAttribute('aria-live', 'polite');
   if (!el.hasAttribute('aria-relevant')) el.setAttribute('aria-relevant', 'additions');
   return el;
+}
+
+function flush() {
+  pending.splice(0).forEach((callback) => callback(rootElement));
 }
 
 export function initRoot() {
@@ -28,16 +32,19 @@ export function initRoot() {
     if (other) {
       prepareRoot(other).append(...el.childNodes);
       rootElement = other;
-      listeners.forEach(([type, listener]) => other.addEventListener(type, listener));
-      return;
+    } else {
+      document.body.appendChild(el);
     }
-    document.body.appendChild(el);
+    flush();
   }, { once: true });
 }
 
 export const getRoot = () => rootElement;
 
-export function listenRoot(type, listener) {
-  listeners.push([type, listener]);
-  rootElement.addEventListener(type, listener);
+export function whenConnected(callback) {
+  if (rootElement.isConnected) {
+    callback(rootElement);
+  } else {
+    pending.push(callback);
+  }
 }

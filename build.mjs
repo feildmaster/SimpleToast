@@ -35,9 +35,16 @@ fs.mkdirSync(resolve('dist'), { recursive: true });
 
 fs.writeFileSync(resolve('dist', 'simpletoast.js'), await bundle('index.js'));
 fs.writeFileSync(resolve('dist', 'simpletoast.core.js'), await bundle('core.js'));
+fs.writeFileSync(resolve('dist', 'simpletoast.timers.js'), await bundle('timers.js'));
 fs.copyFileSync(resolve('src', 'index.css'), resolve('dist', 'simpletoast.css'));
-fs.writeFileSync(
-  resolve('dist', 'simpletoast.d.ts'),
-  fs.readFileSync(resolve('src', 'index.d.ts'), 'utf8').replaceAll("'./core'", "'./simpletoast.core'"),
-);
-fs.copyFileSync(resolve('src', 'core.d.ts'), resolve('dist', 'simpletoast.core.d.ts'));
+const declarations = {
+  'index.d.ts': 'simpletoast.d.ts',
+  'core.d.ts': 'simpletoast.core.d.ts',
+  'timers.d.ts': 'simpletoast.timers.d.ts',
+};
+Object.entries(declarations).forEach(([source, target]) => {
+  const content = fs.readFileSync(resolve('src', source), 'utf8')
+    .replaceAll("'./core'", "'./simpletoast.core'")
+    .replaceAll("'./timers'", "'./simpletoast.timers'");
+  fs.writeFileSync(resolve('dist', target), content);
+});

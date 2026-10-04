@@ -10,6 +10,7 @@ const read = (file) => fs.readFileSync(path.join(dir, file), 'utf8');
 export const sources = {
   injecting: read('../dist/simpletoast.js'),
   core: read('../dist/simpletoast.core.js'),
+  timers: read('../dist/simpletoast.timers.js'),
   css: read('../dist/simpletoast.css'),
   legacy: read('fixtures/simpletoast-2.0.3.js'),
 };

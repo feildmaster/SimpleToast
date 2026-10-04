@@ -75,14 +75,22 @@ Sketch, nothing decided beyond the two points above:
 - **`button.mouseOver` in the UnderScript `css` adapter: listeners.** The adapter adds `mouseenter` / `mouseleave` handlers on
   the buttons that apply and restore the inline values (what 2.0.3 does today). No generated stylesheet, and it only
   affects callers that passed `mouseOver`. With this, every design question for 3.0 has an answer.
-- **Timeouts are a separate feature module, not part of core.** `src/modules/timers.js` subscribes to the root's `simpletoast:add`
-  event (which now carries `options`) and closes the toast with reason `'timeout'`, so the core build has no timers and
-  `timeout` is silently ignored there. Chosen over a Tippy-style runtime `use(plugin)` API because the plugin would
-  register on one copy while another wins `window.SimpleToast` (mixed generations), and it would create a public contract.
-  Two copies of the default build on one page would both attach, so the first marks the element with
-  `data-simpletoast-timed` and the second skips it. Root listeners are kept in a list and re-attached when the root is
-  swapped for an existing one at `DOMContentLoaded`. Types follow the same split: `simpletoast.core.d.ts` plus a
-  `simpletoast.d.ts` that augments `SimpleToastOptions` with the timer options.
+- **Timeouts are a separate feature, shipped as an add-on.** `src/modules/timers.js` subscribes to `simpletoast:add` (which
+  carries `options`) and closes the toast with reason `'timeout'`. It is built three ways: into `simpletoast.js`, and as the
+  standalone `simpletoast.timers.js` that works next to `simpletoast.core.js`, in either load order. Chosen over a Tippy-style
+  runtime `use(plugin)` API because the plugin would register on one copy while another wins `window.SimpleToast`
+  (mixed generations), and it would create a public contract. The add-on only listens on `document`, so it never imports
+  anything from core and is independent of which copy made the toast.
+  - The root events bubble, and `simpletoast:add` is held until the toast is in the document (a toast shown before
+    `<body>` exists fires it at `DOMContentLoaded`, a toast closed before then never fires it). A detached root cannot
+    bubble to `document`, and "added" was misleading while `isConnected` was false anyway. This replaced an earlier
+    listener list that re-attached to a swapped root.
+  - Several copies of the timers (the add-on twice, or the add-on plus the all-in-one build) would both attach, so the
+    first marks the element with `data-simpletoast-timed` and the others skip it. A Symbol would not be shared between
+    userscript sandboxes.
+  - A `simpletoast.timed.js` (core plus timers, no stylesheet) was considered and dropped, since core plus the add-on is the same.
+  - Types follow the split: `simpletoast.core.d.ts`, `simpletoast.timers.d.ts` (augments `SimpleToastOptions`), and
+    `simpletoast.d.ts` which pulls in both.
 - **Timeouts: per-toast, millisecond accurate, presence-aware.** Replaces the shared 1-second tick. `timeout` stays opt-in
   and the close reason stays `'timeout'`.
   - Each toast has its own timer with a tracked remaining time.
