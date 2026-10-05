@@ -11,6 +11,7 @@ export interface SimpleToastHandle {
   exists(): boolean;
   setText(text: string): void;
   setTitle(title: string): void;
+  setFooter(footer: string): void;
   close(reason?: SimpleToastCloseReason): void;
 }
 

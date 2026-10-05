@@ -22,6 +22,7 @@ describe('types', () => {
     expectTypeOf<SimpleToastHandle['exists']>().toEqualTypeOf<() => boolean>();
     expectTypeOf<SimpleToastHandle['setText']>().parameters.toEqualTypeOf<[text: string]>();
     expectTypeOf<SimpleToastHandle['setTitle']>().parameters.toEqualTypeOf<[title: string]>();
+    expectTypeOf<SimpleToastHandle['setFooter']>().parameters.toEqualTypeOf<[footer: string]>();
     expectTypeOf<SimpleToastHandle['close']>().parameter(0).toEqualTypeOf<SimpleToastCloseReason | undefined>();
   });
 

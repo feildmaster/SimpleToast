@@ -16,6 +16,7 @@ const blankToast = () => Object.freeze({
   element: document.createElement('div'),
   setText: noop,
   setTitle: noop,
+  setFooter: noop,
   exists: () => false,
   close: noop,
 });
@@ -48,6 +49,10 @@ function Toast(input) {
       node.textContent = value;
     }
   };
+  function set(element, content) {
+    if (content == null || !element || !this.exists()) return;
+    setContent(element, content);
+  }
   const toastClass = className && typeof className === 'object' && !Array.isArray(className)
     ? className.toast
     : className;
@@ -72,14 +77,6 @@ function Toast(input) {
 
   const handle = {
     element: el,
-    setText: (newText) => {
-      if (newText == null || !bodyEl || !handle.exists()) return;
-      setContent(bodyEl, newText);
-    },
-    setTitle: (newTitle) => {
-      if (newTitle == null || !titleEl || !handle.exists()) return;
-      setContent(titleEl, newTitle);
-    },
     exists: () => el.isConnected || (!closed && !getRoot().isConnected),
     close: (reason = 'unknown') => {
       if (closed) return;
@@ -94,6 +91,9 @@ function Toast(input) {
       }
     },
   };
+  handle.setTitle = set.bind(handle, titleEl);
+  handle.setText = set.bind(handle, bodyEl);
+  handle.setFooter = set.bind(handle, footerEl);
   const onAbort = () => handle.close('aborted');
 
   const buttonList = typeof buttons === 'object' && !Array.isArray(buttons) ? [buttons] : buttons;

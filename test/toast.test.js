@@ -49,6 +49,14 @@ describe('toast', () => {
     expect(SimpleToast.count()).toBe(0);
   });
 
+  it('has the same properties as a real toast, and every method is safe to call', () => {
+    const dead = SimpleToast('');
+    expect(Object.keys(dead).sort()).toEqual(Object.keys(SimpleToast('a')).sort());
+    Object.values(dead).filter((value) => typeof value === 'function').forEach((method) => {
+      expect(() => method('x')).not.toThrow();
+    });
+  });
+
   it('adds classes from className in every accepted shape', () => {
     expect(SimpleToast({ text: 'a', className: 'one' }).element.className).toBe('simpletoast one');
     expect(SimpleToast({ text: 'a', className: ['one', 'two'] }).element.className).toBe('simpletoast one two');
@@ -91,76 +99,65 @@ describe('toast', () => {
     expect(SimpleToast({ text: 'e', role: 'alert' }).element.getAttribute('role')).toBe('alert');
   });
 
-  describe('setText', () => {
-    it('changes and clears the text', () => {
-      const toast = SimpleToast('a');
-      toast.setText('b');
-      expect(toast.element.querySelector('.simpletoast-body').innerHTML).toBe('b');
-      toast.setText('');
-      expect(toast.element.querySelector('.simpletoast-body').innerHTML).toBe('');
+  describe.each([
+    ['setText', 'text'],
+    ['setTitle', 'title'],
+    ['setFooter', 'footer'],
+  ])('%s', (method, option) => {
+    const partOf = { title: 'title', text: 'body', footer: 'footer' };
+    const others = Object.fromEntries(Object.keys(partOf).filter((key) => key !== option).map((key) => [key, `other ${key}`]));
+    const create = (extra) => SimpleToast({ ...others, [option]: 'a', ...extra });
+    const part = (toast, key = option) => toast.element.querySelector(`.simpletoast-${partOf[key]}`);
+
+    it('changes and clears the content', () => {
+      const toast = create();
+      toast[method]('b');
+      expect(part(toast).innerHTML).toBe('b');
+      toast[method]('');
+      expect(part(toast).innerHTML).toBe('');
+    });
+
+    it('fills a part that started empty', () => {
+      const given = option === 'text' ? 'title' : 'text';
+      const toast = SimpleToast({ [given]: 'x' });
+      toast[method]('now filled');
+      expect(part(toast).textContent).toBe('now filled');
+    });
+
+    it('leaves the other parts alone', () => {
+      const toast = create();
+      toast[method]('b');
+      Object.entries(others).forEach(([key, value]) => {
+        expect(part(toast, key).textContent).toBe(value);
+      });
     });
 
     it('ignores null and undefined', () => {
-      const toast = SimpleToast('a');
-      toast.setText(null);
-      toast.setText(undefined);
-      expect(toast.element.querySelector('.simpletoast-body').innerHTML).toBe('a');
+      const toast = create();
+      toast[method](null);
+      toast[method](undefined);
+      expect(part(toast).innerHTML).toBe('a');
     });
 
     it('does nothing after close', () => {
-      const toast = SimpleToast('a');
+      const toast = create();
       toast.close();
-      toast.setText('b');
-      expect(toast.element.querySelector('.simpletoast-body').innerHTML).toBe('a');
-    });
-  });
-
-  describe('setTitle', () => {
-    const title = (toast) => toast.element.querySelector('.simpletoast-title');
-
-    it('changes and clears the title', () => {
-      const toast = SimpleToast({ title: 'a', text: 'x' });
-      toast.setTitle('b');
-      expect(title(toast).innerHTML).toBe('b');
-      toast.setTitle('');
-      expect(title(toast).innerHTML).toBe('');
-    });
-
-    it('can give a title to a toast that started without one', () => {
-      const toast = SimpleToast('x');
-      toast.setTitle('now with a title');
-      expect(title(toast).textContent).toBe('now with a title');
-    });
-
-    it('leaves the text alone', () => {
-      const toast = SimpleToast({ title: 'a', text: 'x' });
-      toast.setTitle('b');
-      expect(toast.element.querySelector('.simpletoast-body').textContent).toBe('x');
-    });
-
-    it('ignores null and undefined', () => {
-      const toast = SimpleToast({ title: 'a', text: 'x' });
-      toast.setTitle(null);
-      toast.setTitle(undefined);
-      expect(title(toast).innerHTML).toBe('a');
-    });
-
-    it('does nothing after close', () => {
-      const toast = SimpleToast({ title: 'a', text: 'x' });
-      toast.close();
-      toast.setTitle('b');
-      expect(title(toast).innerHTML).toBe('a');
+      toast[method]('b');
+      expect(part(toast).innerHTML).toBe('a');
     });
 
     it('renders as text when html is false', () => {
-      const toast = SimpleToast({ title: 'a', text: 'x', html: false });
-      toast.setTitle('<b>t</b>');
+      const toast = create({ html: false });
+      toast[method]('<b>t</b>');
       expect(toast.element.querySelector('b')).toBe(null);
-      expect(title(toast).textContent).toBe('<b>t</b>');
+      expect(part(toast).textContent).toBe('<b>t</b>');
     });
 
-    it('is safe to call on a dead toast', () => {
-      expect(() => SimpleToast('').setTitle('x')).not.toThrow();
+    it('still works when called without the toast', () => {
+      const toast = create();
+      const detached = toast[method];
+      detached('b');
+      expect(part(toast).innerHTML).toBe('b');
     });
   });
 
@@ -423,8 +420,8 @@ describe('toast', () => {
       expect(Object.getPrototypeOf(toast)).toBe(page.window.Object.prototype);
     });
 
-    it('exposes only element, exists, setText, setTitle and close', () => {
-      expect(Object.keys(SimpleToast('a')).sort()).toEqual(['close', 'element', 'exists', 'setText', 'setTitle']);
+    it('exposes only element, exists, setText, setTitle, setFooter and close', () => {
+      expect(Object.keys(SimpleToast('a')).sort()).toEqual(['close', 'element', 'exists', 'setFooter', 'setText', 'setTitle']);
     });
   });
 

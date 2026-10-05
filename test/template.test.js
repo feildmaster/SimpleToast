@@ -120,6 +120,12 @@ describe('template', () => {
       expect(element.querySelector('.simpletoast-body').textContent).toBe('<b>x</b>');
     });
 
+    it('lets setFooter change the footer', () => {
+      const toast = SimpleToast({ footer: 'F', text: 'x' });
+      toast.setFooter('New');
+      expect(toast.element.querySelector('.simpletoast-footer').textContent).toBe('New');
+    });
+
     it('lets setText change the body', () => {
       const toast = SimpleToast('a');
       toast.setText('b');
@@ -173,6 +179,12 @@ describe('template', () => {
       const toast = SimpleToast({ title: 'T', text: 'x' });
       toast.setTitle('New');
       expect(toast.element.textContent).toBe('New');
+    });
+
+    it('lets setFooter do nothing', () => {
+      const toast = SimpleToast({ title: 'T' });
+      expect(() => toast.setFooter('ignored')).not.toThrow();
+      expect(toast.element.textContent).toBe('T');
     });
 
     it('lets setText do nothing', () => {
