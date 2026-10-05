@@ -14,7 +14,7 @@
     console.log(`SimpleToast(v${localToast.versionString}): Publicized`);
   }
 })(this, () => {
-  const version = buildVersion(2, 0, 4);
+  const version = buildVersion(2, 0, 5);
   const style = {
     root: {
       display: 'flex',
