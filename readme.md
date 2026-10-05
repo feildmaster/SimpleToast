@@ -27,7 +27,8 @@ SimpleToast({ title: 'Title only' });
 
 ### Styling
 
-SimpleToast never sets inline styles. Style toasts with the classes below, or set the custom properties on `.simpletoast-root` / `.simpletoast`: `--simpletoast-bg`, `--simpletoast-color`, `--simpletoast-font`, `--simpletoast-shadow`, `--simpletoast-max-width`, `--simpletoast-gap`, `--simpletoast-bottom`, `--simpletoast-right`, `--simpletoast-z-index`, `--simpletoast-button-bg`, `--simpletoast-button-bg-hover`.
+SimpleToast never sets inline styles. Style toasts with the classes below, or set the custom properties on `.simpletoast-root` / `.simpletoast`:
+`--simpletoast-bg`, `--simpletoast-color`, `--simpletoast-font`, `--simpletoast-shadow`, `--simpletoast-max-width`, `--simpletoast-gap`, `--simpletoast-bottom`, `--simpletoast-right`, `--simpletoast-z-index`, `--simpletoast-button-bg`, `--simpletoast-button-bg-hover`.
 
 | Class | Element |
 | --- | --- |
@@ -109,7 +110,6 @@ toast.element; // The toast's DOM element
 toast.setText(newText); // Change text to newText ('' clears it)
 toast.setTitle(newTitle); // Change the title to newTitle ('' clears it)
 toast.setFooter(newFooter); // Change the footer to newFooter ('' clears it)
-toast.setTitle(newTitle); // Change text to newTitle ('' clears it)
 toast.exists(); // Is the toast still on the page?
 toast.close(reason); // Close toast for optional reason
 
