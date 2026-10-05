@@ -57,7 +57,7 @@ You can provide a single button within an object, or an array of buttons.
     SimpleToast({
         buttons: {
             text: 'Text', // Required
-            onclick: () => {
+            onClick: () => {
                 // Runs on click
             },
             css: {
@@ -90,7 +90,7 @@ const toast = new SimpleToast({
         text: '',
         className: '',
         css: {},
-        onclick(event, toast) {
+        onClick(event, toast) {
             // this; // toast reference
         },
     },

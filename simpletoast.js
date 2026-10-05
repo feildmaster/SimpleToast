@@ -208,8 +208,9 @@
         applyCSS(elb, style.button);
         applyCSS(elb, css.button);
         applyCSS(elb, button.css);
-        if (typeof button.onclick === 'function') {
-          elb.onclick = (e) => button.onclick.call(safeToast, e, safeToast);
+        const onClick = button.onClick ?? button.onclick;
+        if (typeof onClick === 'function') {
+          elb.onclick = (e) => onClick.call(safeToast, e, safeToast);
         }
         let prev = {};
         elb.onmouseover = () => {
