@@ -115,6 +115,55 @@ describe('toast', () => {
     });
   });
 
+  describe('setTitle', () => {
+    const title = (toast) => toast.element.querySelector('.simpletoast-title');
+
+    it('changes and clears the title', () => {
+      const toast = SimpleToast({ title: 'a', text: 'x' });
+      toast.setTitle('b');
+      expect(title(toast).innerHTML).toBe('b');
+      toast.setTitle('');
+      expect(title(toast).innerHTML).toBe('');
+    });
+
+    it('can give a title to a toast that started without one', () => {
+      const toast = SimpleToast('x');
+      toast.setTitle('now with a title');
+      expect(title(toast).textContent).toBe('now with a title');
+    });
+
+    it('leaves the text alone', () => {
+      const toast = SimpleToast({ title: 'a', text: 'x' });
+      toast.setTitle('b');
+      expect(toast.element.querySelector('.simpletoast-body').textContent).toBe('x');
+    });
+
+    it('ignores null and undefined', () => {
+      const toast = SimpleToast({ title: 'a', text: 'x' });
+      toast.setTitle(null);
+      toast.setTitle(undefined);
+      expect(title(toast).innerHTML).toBe('a');
+    });
+
+    it('does nothing after close', () => {
+      const toast = SimpleToast({ title: 'a', text: 'x' });
+      toast.close();
+      toast.setTitle('b');
+      expect(title(toast).innerHTML).toBe('a');
+    });
+
+    it('renders as text when html is false', () => {
+      const toast = SimpleToast({ title: 'a', text: 'x', html: false });
+      toast.setTitle('<b>t</b>');
+      expect(toast.element.querySelector('b')).toBe(null);
+      expect(title(toast).textContent).toBe('<b>t</b>');
+    });
+
+    it('is safe to call on a dead toast', () => {
+      expect(() => SimpleToast('').setTitle('x')).not.toThrow();
+    });
+  });
+
   describe('closing', () => {
     it('dismisses on click of the toast', () => {
       const onClose = vi.fn();
@@ -374,8 +423,8 @@ describe('toast', () => {
       expect(Object.getPrototypeOf(toast)).toBe(page.window.Object.prototype);
     });
 
-    it('exposes only element, exists, setText and close', () => {
-      expect(Object.keys(SimpleToast('a')).sort()).toEqual(['close', 'element', 'exists', 'setText']);
+    it('exposes only element, exists, setText, setTitle and close', () => {
+      expect(Object.keys(SimpleToast('a')).sort()).toEqual(['close', 'element', 'exists', 'setText', 'setTitle']);
     });
   });
 

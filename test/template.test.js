@@ -145,6 +145,12 @@ describe('template', () => {
       expect(element.querySelector('.simpletoast-footer').textContent).toBe('F');
     });
 
+    it('lets setTitle do nothing', () => {
+      const toast = SimpleToast('x');
+      expect(() => toast.setTitle('ignored')).not.toThrow();
+      expect(toast.element.textContent).not.toContain('ignored');
+    });
+
     it('is a dead toast when only a title was given', () => {
       const toast = SimpleToast({ title: 'Only a title' });
       expect(toast.exists()).toBe(false);
@@ -161,6 +167,12 @@ describe('template', () => {
     it('shows the title and ignores the text', () => {
       const { element } = SimpleToast({ title: 'T', text: 'ignored' });
       expect(element.textContent).toBe('T');
+    });
+
+    it('lets setTitle change the title', () => {
+      const toast = SimpleToast({ title: 'T', text: 'x' });
+      toast.setTitle('New');
+      expect(toast.element.textContent).toBe('New');
     });
 
     it('lets setText do nothing', () => {

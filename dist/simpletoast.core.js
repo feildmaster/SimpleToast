@@ -123,6 +123,7 @@ function noop() {}
 const blankToast = () => Object.freeze({
   element: document.createElement('div'),
   setText: noop,
+  setTitle: noop,
   exists: () => false,
   close: noop,
 });
@@ -182,6 +183,10 @@ function Toast(input) {
     setText: (newText) => {
       if (newText == null || !bodyEl || !handle.exists()) return;
       setContent(bodyEl, newText);
+    },
+    setTitle: (newTitle) => {
+      if (newTitle == null || !titleEl || !handle.exists()) return;
+      setContent(titleEl, newTitle);
     },
     exists: () => el.isConnected || (!closed && !getRoot().isConnected),
     close: (reason = 'unknown') => {

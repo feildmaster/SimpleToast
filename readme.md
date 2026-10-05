@@ -27,10 +27,7 @@ SimpleToast({ title: 'Title only' });
 
 ### Styling
 
-SimpleToast never sets inline styles. Style toasts with the classes below, or set the custom properties on
-`.simpletoast-root` / `.simpletoast`: `--simpletoast-bg`, `--simpletoast-color`, `--simpletoast-font`,
-`--simpletoast-shadow`, `--simpletoast-max-width`, `--simpletoast-gap`, `--simpletoast-bottom`, `--simpletoast-right`,
-`--simpletoast-z-index`, `--simpletoast-button-bg`, `--simpletoast-button-bg-hover`.
+SimpleToast never sets inline styles. Style toasts with the classes below, or set the custom properties on `.simpletoast-root` / `.simpletoast`: `--simpletoast-bg`, `--simpletoast-color`, `--simpletoast-font`, `--simpletoast-shadow`, `--simpletoast-max-width`, `--simpletoast-gap`, `--simpletoast-bottom`, `--simpletoast-right`, `--simpletoast-z-index`, `--simpletoast-button-bg`, `--simpletoast-button-bg-hover`.
 
 | Class | Element |
 | --- | --- |
@@ -46,8 +43,7 @@ Use `className` to add your own classes, and `toast.element` to reach the elemen
 
 ### Template
 
-A page can control the toast's structure with a `<template id="simpletoast-template">`. It is looked up for every toast, so
-it can be added, changed or removed at any time. Without it, the default structure is used.
+A page can control the toast's structure with a `<template id="simpletoast-template">`. It is looked up for every toast, so it can be added, changed or removed at any time. Without it, the default structure is used.
 
 ```html
 <template id="simpletoast-template">
@@ -58,17 +54,11 @@ it can be added, changed or removed at any time. Without it, the default structu
 </template>
 ```
 
-* The first element in the template becomes `toast.element`. SimpleToast adds its own classes, `role`, `tabindex` and
-  the click and keyboard handling to it. A `role` or `tabindex` the template sets is kept (the `role` option still wins).
-* Parts are found inside that element by class: `.simpletoast-title`, `.simpletoast-body`, `.simpletoast-footer`. They
-  must be inside the root, not on it.
-* Only the parts the template has are filled in. The template above has no title, so a `title` option shows nowhere. If
-  none of `title`, `text` or `footer` has a part, the toast is not shown and you get a dead handle, the same as an
-  empty call. `setText` needs a body part and does nothing without one.
-* Buttons go in a `.simpletoast-buttons` element if the template has one. Otherwise they go before the footer, or at the
-  end of the toast when there is no footer.
-* A template whose first element has none of the part classes logs a console warning once, since no toast can be shown. A
-  template with no element at all falls back to the default structure without a warning.
+* The first element in the template becomes `toast.element`. SimpleToast adds its own classes, `role`, `tabindex` and the click and keyboard handling to it. A `role` or `tabindex` the template sets is kept (the `role` option still wins).
+* Parts are found inside that element by class: `.simpletoast-title`, `.simpletoast-body`, `.simpletoast-footer`. They must be inside the root, not on it.
+* Only the parts the template has are filled in. The template above has no title, so a `title` option shows nowhere. If none of `title`, `text` or `footer` has a part, the toast is not shown and you get a dead handle, the same as an empty call. `setText` needs a body part and `setTitle` needs a title part, and each does nothing without it. Likewise, `setTitle` also needs a body part to do anything.
+* Buttons go in a `.simpletoast-buttons` element if the template has one. Otherwise they go before the footer, or at the end of the toast when there is no footer.
+* A template whose first element has none of the part classes logs a console warning once, since no toast can be shown. A template with no element at all falls back to the default structure without a warning.
 
 ### Buttons
 
@@ -117,6 +107,8 @@ const toast = new SimpleToast({
 
 toast.element; // The toast's DOM element
 toast.setText(newText); // Change text to newText ('' clears it)
+toast.setTitle(newTitle); // Change the title to newTitle ('' clears it)
+toast.setTitle(newTitle); // Change text to newTitle ('' clears it)
 toast.exists(); // Is the toast still on the page?
 toast.close(reason); // Close toast for optional reason
 
@@ -127,30 +119,23 @@ SimpleToast.versionString; // Readable string of version
 SimpleToast.count(); // Number of toasts open
 ```
 
-Close reasons: `'timeout'`, `'dismissed'` (click, Enter, Space or Escape on the toast; Escape still works with `dismissOnClick: false`), `'aborted'`, or whatever was passed to
-`close()` (`'unknown'` by default).
+Close reasons: `'timeout'`, `'dismissed'` (click, Enter, Space or Escape on the toast; Escape still works with `dismissOnClick: false`), `'aborted'`, or whatever was passed to `close()` (`'unknown'` by default).
 
 Timeouts only run while the tab is visible and focused, and while the user is not idle.
 
-Timeouts are a feature of `simpletoast.js` and of the `simpletoast.timers.js` add-on. The core build alone ignores `timeout`,
-`pauseOnHover` and `idle` without any warning.
+Timeouts are a feature of `simpletoast.js` and of the `simpletoast.timers.js` add-on. The core build alone ignores `timeout`, `pauseOnHover` and `idle` without any warning.
 
 ### Events
 
-`#AlertToast` receives `simpletoast:add` and `simpletoast:close`. Both bubble, so `document` can listen too. `event.detail.toast` is the handle. `simpletoast:add`
-also has `event.detail.options`, the options the toast was created with, and `simpletoast:close` has `event.detail.reason`.
-Features such as timeouts are built on these events (the timers add-on only listens on `document`).
+`#AlertToast` receives `simpletoast:add` and `simpletoast:close`. Both bubble, so `document` can listen too. `event.detail.toast` is the handle. `simpletoast:add` also has `event.detail.options`, the options the toast was created with, and `simpletoast:close` has `event.detail.reason`. Features such as timeouts are built on these events (the timers add-on only listens on `document`).
 
-`simpletoast:add` fires once the toast is in the document. A toast shown before `<body>` exists gets its event when the page
-loads. A toast closed before then never fires `simpletoast:add`.
+`simpletoast:add` fires once the toast is in the document. A toast shown before `<body>` exists gets its event when the page loads. A toast closed before then never fires `simpletoast:add`.
 
-The toast's own element receives the same `simpletoast:close` event with the same detail. It does not bubble, so a
-listener on the root hears each close once.
+The toast's own element receives the same `simpletoast:close` event with the same detail. It does not bubble, so a listener on the root hears each close once.
 
 ### Accessibility
 
-The root is a polite live region and each toast has `role="status"`. Toasts are focusable and are not given focus
-automatically. Content is HTML by default, so images need `alt` text, and the title is announced as part of the toast.
+The root is a polite live region and each toast has `role="status"`. Toasts are focusable and are not given focus automatically. Content is HTML by default, so images need `alt` text, and the title is announced as part of the toast.
 
 ### Notes
 
