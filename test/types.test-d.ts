@@ -6,7 +6,7 @@ import type {
   SimpleToastStatic,
   SimpleToastCloseReason,
   SimpleToastRole,
-} from '../src';
+} from '../src/types/simpletoast';
 
 declare const SimpleToast: SimpleToastStatic;
 

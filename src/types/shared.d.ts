@@ -21,7 +21,7 @@ export interface SimpleToastButton {
   onclick?(this: SimpleToastHandle, event: MouseEvent, toast: SimpleToastHandle): void;
 }
 
-export interface SimpleToastOptions {
+export interface SimpleToastBaseOptions {
   title?: string;
   text?: string;
   footer?: string;
@@ -35,21 +35,21 @@ export interface SimpleToastOptions {
   onClose?(this: SimpleToastHandle, reason: SimpleToastCloseReason, toast: SimpleToastHandle): void;
 }
 
-export interface SimpleToastStatic {
-  (options: SimpleToastOptions | string): SimpleToastHandle;
-  new (options: SimpleToastOptions | string): SimpleToastHandle;
+export interface SimpleToastTimerOptions {
+  timeout?: number;
+  pauseOnHover?: boolean;
+  idle?: number | false;
+}
+
+export interface SimpleToastFactory<Options> {
+  (options: Options | string): SimpleToastHandle;
+  new (options: Options | string): SimpleToastHandle;
   readonly version: number;
   readonly versionString: string;
   count(): number;
 }
 
-declare global {
-  interface Window {
-    SimpleToast?: SimpleToastStatic;
-  }
-
-  interface HTMLElementEventMap {
-    'simpletoast:add': CustomEvent<{ toast: SimpleToastHandle; options: SimpleToastOptions }>;
-    'simpletoast:close': CustomEvent<{ toast: SimpleToastHandle; reason: SimpleToastCloseReason }>;
-  }
+export interface SimpleToastEvents<Options> {
+  'simpletoast:add': CustomEvent<{ toast: SimpleToastHandle; options: Options }>;
+  'simpletoast:close': CustomEvent<{ toast: SimpleToastHandle; reason: SimpleToastCloseReason }>;
 }

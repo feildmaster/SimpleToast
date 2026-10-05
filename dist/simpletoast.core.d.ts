@@ -1,12 +1,12 @@
 type AnyString = (string & {});
 
-export type SimpleToastClassName = string | string[];
+type SimpleToastClassName = string | string[];
 
-export type SimpleToastCloseReason = 'timeout' | 'dismissed' | 'aborted' | 'unknown' | AnyString;
+type SimpleToastCloseReason = 'timeout' | 'dismissed' | 'aborted' | 'unknown' | AnyString;
 
-export type SimpleToastRole = 'status' | 'alert' | 'log' | AnyString;
+type SimpleToastRole = 'status' | 'alert' | 'log' | AnyString;
 
-export interface SimpleToastHandle {
+interface SimpleToastHandle {
   readonly element: HTMLElement;
   exists(): boolean;
   setText(text: string): void;
@@ -15,13 +15,13 @@ export interface SimpleToastHandle {
   close(reason?: SimpleToastCloseReason): void;
 }
 
-export interface SimpleToastButton {
+interface SimpleToastButton {
   text: string;
   className?: SimpleToastClassName;
   onclick?(this: SimpleToastHandle, event: MouseEvent, toast: SimpleToastHandle): void;
 }
 
-export interface SimpleToastOptions {
+interface SimpleToastBaseOptions {
   title?: string;
   text?: string;
   footer?: string;
@@ -35,21 +35,29 @@ export interface SimpleToastOptions {
   onClose?(this: SimpleToastHandle, reason: SimpleToastCloseReason, toast: SimpleToastHandle): void;
 }
 
-export interface SimpleToastStatic {
-  (options: SimpleToastOptions | string): SimpleToastHandle;
-  new (options: SimpleToastOptions | string): SimpleToastHandle;
+interface SimpleToastFactory<Options> {
+  (options: Options | string): SimpleToastHandle;
+  new (options: Options | string): SimpleToastHandle;
   readonly version: number;
   readonly versionString: string;
   count(): number;
 }
+
+interface SimpleToastEvents<Options> {
+  'simpletoast:add': CustomEvent<{ toast: SimpleToastHandle; options: Options }>;
+  'simpletoast:close': CustomEvent<{ toast: SimpleToastHandle; reason: SimpleToastCloseReason }>;
+}
+
+interface SimpleToastOptions extends SimpleToastBaseOptions {}
+
+type SimpleToastStatic = SimpleToastFactory<SimpleToastOptions>;
 
 declare global {
   interface Window {
     SimpleToast?: SimpleToastStatic;
   }
 
-  interface HTMLElementEventMap {
-    'simpletoast:add': CustomEvent<{ toast: SimpleToastHandle; options: SimpleToastOptions }>;
-    'simpletoast:close': CustomEvent<{ toast: SimpleToastHandle; reason: SimpleToastCloseReason }>;
-  }
+  interface HTMLElementEventMap extends SimpleToastEvents<SimpleToastOptions> {}
 }
+
+export type { SimpleToastButton, SimpleToastClassName, SimpleToastCloseReason, SimpleToastHandle, SimpleToastOptions, SimpleToastRole, SimpleToastStatic };
