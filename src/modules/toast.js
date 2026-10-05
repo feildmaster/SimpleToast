@@ -89,9 +89,7 @@ function Toast(input) {
       }
     },
   };
-  function onAbort() {
-    handle.close('aborted');
-  }
+  const onAbort = () => handle.close('aborted');
 
   const buttonList = typeof buttons === 'object' && !Array.isArray(buttons) ? [buttons] : buttons;
   if (Array.isArray(buttonList)) {
