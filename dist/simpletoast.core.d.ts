@@ -18,6 +18,8 @@ interface SimpleToastHandle {
 interface SimpleToastButton {
   text: string;
   className?: SimpleToastClassName;
+  onClick?(this: SimpleToastHandle, event: MouseEvent, toast: SimpleToastHandle): void;
+  /** @deprecated Use `onClick` */
   onclick?(this: SimpleToastHandle, event: MouseEvent, toast: SimpleToastHandle): void;
 }
 

@@ -211,8 +211,9 @@ function Toast(input) {
       buttonEl.type = 'button';
       buttonEl.className = classes('simpletoast-button', button.className || buttonClass);
       setContent(buttonEl, button.text);
-      if (typeof button.onclick === 'function') {
-        buttonEl.addEventListener('click', (event) => button.onclick.call(handle, event, handle));
+      const onClick = button.onClick ?? button.onclick;
+      if (typeof onClick === 'function') {
+        buttonEl.addEventListener('click', (event) => onClick.call(handle, event, handle));
       }
       if (buttonsEl) {
         buttonsEl.appendChild(buttonEl);

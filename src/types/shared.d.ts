@@ -18,6 +18,8 @@ export interface SimpleToastHandle {
 export interface SimpleToastButton {
   text: string;
   className?: SimpleToastClassName;
+  onClick?(this: SimpleToastHandle, event: MouseEvent, toast: SimpleToastHandle): void;
+  /** @deprecated Use `onClick` */
   onclick?(this: SimpleToastHandle, event: MouseEvent, toast: SimpleToastHandle): void;
 }
 

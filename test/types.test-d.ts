@@ -44,6 +44,8 @@ describe('types', () => {
   });
 
   it('types button and close callbacks with a handle this', () => {
+    expectTypeOf<NonNullable<SimpleToastButton['onClick']>>().parameters.toEqualTypeOf<[MouseEvent, SimpleToastHandle]>();
+    expectTypeOf<NonNullable<SimpleToastButton['onClick']>>().thisParameter.toEqualTypeOf<SimpleToastHandle>();
     expectTypeOf<NonNullable<SimpleToastButton['onclick']>>().parameters.toEqualTypeOf<[MouseEvent, SimpleToastHandle]>();
     expectTypeOf<NonNullable<SimpleToastButton['onclick']>>().thisParameter.toEqualTypeOf<SimpleToastHandle>();
     expectTypeOf<NonNullable<SimpleToastOptions['onClose']>>().thisParameter.toEqualTypeOf<SimpleToastHandle>();

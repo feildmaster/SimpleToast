@@ -69,7 +69,7 @@ Buttons do not dismiss the toast. Call `toast.close()` from the handler to close
 SimpleToast({
     text: 'Text',
     buttons: [
-        { text: 'Undo', onclick(event, toast) { toast.close('undo'); } },
+        { text: 'Undo', onClick(event, toast) { toast.close('undo'); } },
         { text: 'Other', className: 'extra' },
     ],
 });
@@ -85,7 +85,7 @@ const toast = new SimpleToast({
     buttons: [...button] || {
         text: '',
         className: '',
-        onclick(event, toast) {
+        onClick(event, toast) {
             // this; // toast reference
         },
     },

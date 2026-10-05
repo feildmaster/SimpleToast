@@ -189,6 +189,53 @@ describe('toast', () => {
       expect(onclick.mock.contexts[0]).toBe(toast);
     });
 
+    it('calls button onClick with the event and the handle, bound to the handle', () => {
+      const onClick = vi.fn();
+      const toast = SimpleToast({ text: 'a', buttons: [{ text: 'b', onClick }] });
+      toast.element.querySelector('button').click();
+      const [event, handle] = onClick.mock.calls[0];
+      expect(event.type).toBe('click');
+      expect(handle).toBe(toast);
+      expect(onClick.mock.contexts[0]).toBe(toast);
+    });
+
+    it('does not dismiss on a button click with onClick', () => {
+      const onClick = vi.fn();
+      const toast = SimpleToast({ text: 'a', buttons: { text: 'b', onClick } });
+      toast.element.querySelector('button').click();
+      expect(onClick).toHaveBeenCalledOnce();
+      expect(toast.exists()).toBe(true);
+    });
+
+    it('prefers onClick over onclick and calls only one', () => {
+      const onClick = vi.fn();
+      const onclick = vi.fn();
+      const toast = SimpleToast({ text: 'a', buttons: { text: 'b', onClick, onclick } });
+      toast.element.querySelector('button').click();
+      expect(onClick).toHaveBeenCalledOnce();
+      expect(onclick).not.toHaveBeenCalled();
+    });
+
+    it('falls back to onclick when onClick is not a function', () => {
+      const onclick = vi.fn();
+      const toast = SimpleToast({ text: 'a', buttons: { text: 'b', onClick: undefined, onclick } });
+      toast.element.querySelector('button').click();
+      expect(onclick).toHaveBeenCalledOnce();
+    });
+
+    it('keeps the handlers it had when the toast was created', () => {
+      const original = vi.fn();
+      const replacement = vi.fn();
+      const withClick = { text: 'b', onClick: original };
+      const withClickLower = { text: 'b', onclick: original };
+      const toast = SimpleToast({ text: 'a', buttons: [withClick, withClickLower] });
+      withClick.onClick = replacement;
+      withClickLower.onclick = replacement;
+      toast.element.querySelectorAll('button').forEach((button) => button.click());
+      expect(original).toHaveBeenCalledTimes(2);
+      expect(replacement).not.toHaveBeenCalled();
+    });
+
     describe('with dismissOnClick false', () => {
       const keydown = (target, key) => {
         const event = new page.window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
