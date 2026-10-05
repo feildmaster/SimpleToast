@@ -1,17 +1,17 @@
-export const version = { major: 3, minor: 0, patch: 0 };
-export const versionString = `${version.major}.${version.minor}${version.patch ? `.${version.patch}` : ''}`;
-export const versionNumber = version.major * 1000000000 + version.minor * 1000 + version.patch;
+import version from 'package-version';
 
-function parseVersion(string) {
-  const parts = String(string).split('.').map(Number);
-  return [parts[0] || 0, parts[1] || 0, parts[2] || 0];
+function parse(string) {
+  const [one, two, three] = String(string).split('.').map(Number);
+  return [one, two, three];
 }
 
+const [major, minor, patch] = parse(version);
+
+export const versionString = `${major}.${minor}.${patch}`;
+export const versionNumber = major * 1000000000 + minor * 1000 + patch;
+
 export function isNewer(string, other) {
-  const a = parseVersion(string);
-  const b = parseVersion(other);
-  for (let i = 0; i < 3; i++) {
-    if (a[i] !== b[i]) return a[i] > b[i];
-  }
-  return false;
+  const [a, b] = [parse(string), parse(other)];
+  const index = a.findIndex((part, i) => part !== b[i]);
+  return index >= 0 && a[index] > b[index];
 }

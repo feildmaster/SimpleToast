@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
+import packageJson from '../package.json' with { type: 'json' };
 import { createPage, sources } from './helpers.js';
 
 describe('root and publishing', () => {
@@ -109,7 +110,7 @@ describe('root and publishing', () => {
       page.load();
       expect(styles().length).toBe(1);
       expect(styles()[0].textContent).toBe(sources.css);
-      expect(styles()[0].dataset.version).toBe('3.0');
+      expect(styles()[0].dataset.version).toBe(packageJson.version);
     });
 
     it('is not injected again by a second copy', () => {
@@ -154,8 +155,7 @@ describe('root and publishing', () => {
       page = createPage();
       const SimpleToast = page.load();
       expect(page.window.SimpleToast).toBe(SimpleToast);
-      expect(SimpleToast.versionString).toBe('3.0');
-      expect(SimpleToast.version).toBe(3000000000);
+      expect(SimpleToast.versionString).toBe(packageJson.version);
     });
 
     it('lets a sandboxed copy publish to window when it is newer', () => {
@@ -163,21 +163,21 @@ describe('root and publishing', () => {
       page.load(sources.legacy, { sandbox: true });
       expect(page.window.SimpleToast.versionString).toBe('2.0.3');
       page.load(sources.injecting, { sandbox: true });
-      expect(page.window.SimpleToast.versionString).toBe('3.0');
+      expect(page.window.SimpleToast.versionString).toBe(packageJson.version);
     });
 
     it('keeps the newest copy when an older sandboxed copy loads later', () => {
       page = createPage();
       page.load(sources.injecting, { sandbox: true });
       page.load(sources.legacy, { sandbox: true });
-      expect(page.window.SimpleToast.versionString).toBe('3.0');
+      expect(page.window.SimpleToast.versionString).toBe(packageJson.version);
     });
 
     it('keeps the newest copy when an unsandboxed copy loads over an older one', () => {
       page = createPage();
       page.load(sources.legacy);
       page.load(sources.injecting);
-      expect(page.window.SimpleToast.versionString).toBe('3.0');
+      expect(page.window.SimpleToast.versionString).toBe(packageJson.version);
     });
 
     it('does not replace a newer global with an unsandboxed copy of itself', () => {
@@ -199,7 +199,31 @@ describe('root and publishing', () => {
       page = createPage();
       page.window.SimpleToast = Object.assign(() => {}, { version: 2000000000 });
       page.load();
-      expect(page.window.SimpleToast.versionString).toBe('3.0');
+      expect(page.window.SimpleToast.versionString).toBe(packageJson.version);
+    });
+
+    const [major, minor, patch] = packageJson.version.split('.').map(Number);
+
+    it('takes its version from package.json', () => {
+      page = createPage();
+      const SimpleToast = page.load();
+      expect(SimpleToast.versionString).toBe(packageJson.version);
+      expect(SimpleToast.version).toBe(major * 1000000000 + minor * 1000 + patch);
+    });
+
+    it.each([
+      [`${major - 1}.99.99`, true],
+      [`${major}.${minor}.${patch}`, false],
+      [`${major}.${minor}.${patch + 1}`, false],
+      [`${major}.${minor + 1}`, false],
+      [`${Math.max(major + 1, 10)}.0`, false],
+      [`${major}.${minor}`, patch > 0],
+    ])('compares against a global at %s (replaced: %s)', (existing, replaced) => {
+      page = createPage();
+      const other = Object.assign(() => {}, { version: 1, versionString: existing });
+      page.window.SimpleToast = other;
+      page.load();
+      expect(page.window.SimpleToast === other).toBe(!replaced);
     });
 
     it('is frozen', () => {
