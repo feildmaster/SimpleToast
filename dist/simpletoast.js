@@ -113,7 +113,7 @@ function isNewer(string, other) {
   return index >= 0 && a[index] > b[index];
 }
 
-const handles = new Set();
+const open = new Set();
 
 function classes(base, extra) {
   const list = Array.isArray(extra) ? extra : [extra];
@@ -159,10 +159,6 @@ function Toast(input) {
       node.textContent = value;
     }
   };
-  function set(element, content) {
-    if (content == null || !element || !this.exists()) return;
-    setContent(element, content);
-  }
   const toastClass = className && typeof className === 'object' && !Array.isArray(className)
     ? className.toast
     : className;
@@ -185,26 +181,29 @@ function Toast(input) {
 
   let closed = false;
 
-  const handle = {
-    element: el,
-    exists: () => el.isConnected || (!closed && !getRoot().isConnected),
-    close: (reason = 'unknown') => {
-      if (closed) return;
-      closed = true;
-      signal?.removeEventListener('abort', onAbort);
-      el.remove();
-      handles.delete(handle);
-      emit(el, 'simpletoast:close', { toast: handle, reason });
-      emit(getRoot(), 'simpletoast:close', { toast: handle, reason }, true);
-      if (typeof onClose === 'function') {
-        onClose.call(handle, reason, handle);
-      }
-    },
-  };
-  handle.setTitle = set.bind(handle, titleEl);
-  handle.setText = set.bind(handle, bodyEl);
-  handle.setFooter = set.bind(handle, footerEl);
-  const onAbort = () => handle.close('aborted');
+  const handle = { element: el };
+  const exists = () => el.isConnected || (!closed && !getRoot().isConnected);
+  function close(reason = 'unknown') {
+    if (closed) return;
+    closed = true;
+    signal?.removeEventListener('abort', onAbort);
+    el.remove();
+    open.delete(exists);
+    emit(el, 'simpletoast:close', { toast: handle, reason });
+    emit(getRoot(), 'simpletoast:close', { toast: handle, reason }, true);
+    if (typeof onClose === 'function') {
+      onClose.call(handle, reason, handle);
+    }
+  }
+  function set(element, content) {
+    if (content == null || !element || !exists()) return;
+    setContent(element, content);
+  }
+  Object.assign(handle, { exists, close });
+  handle.setTitle = set.bind(null, titleEl);
+  handle.setText = set.bind(null, bodyEl);
+  handle.setFooter = set.bind(null, footerEl);
+  const onAbort = () => close('aborted');
 
   const buttonList = typeof buttons === 'object' && !Array.isArray(buttons) ? [buttons] : buttons;
   if (Array.isArray(buttonList)) {
@@ -229,21 +228,21 @@ function Toast(input) {
 
   el.addEventListener('click', (event) => {
     if (!dismissOnClick || event.target.closest('button')) return;
-    handle.close('dismissed');
+    close('dismissed');
   });
   el.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
-      handle.close('dismissed');
+      close('dismissed');
     } else if (dismissOnClick && (event.key === 'Enter' || event.key === ' ') && event.target === el) {
       event.preventDefault();
-      handle.close('dismissed');
+      close('dismissed');
     }
   });
 
   signal?.addEventListener('abort', onAbort, { once: true });
 
   root.appendChild(el);
-  handles.add(handle);
+  open.add(exists);
   whenConnected((connectedRoot) => {
     if (closed) return;
     emit(connectedRoot, 'simpletoast:add', { toast: handle, options }, true);
@@ -253,7 +252,7 @@ function Toast(input) {
 
 Toast.version = versionNumber;
 Toast.versionString = versionString;
-Toast.count = () => Array.from(handles).filter((handle) => handle.exists()).length;
+Toast.count = () => Array.from(open).filter((stillExists) => stillExists()).length;
 Object.freeze(Toast);
 
 function install(root, setup) {

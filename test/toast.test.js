@@ -411,6 +411,40 @@ describe('toast', () => {
   });
 
   describe('handle', () => {
+    it('keeps working when its methods are overwritten', () => {
+      const closed = [];
+      const toast = SimpleToast({ text: 'a', onClose: (reason) => closed.push(reason) });
+      toast.close = () => {};
+      toast.exists = () => false;
+      toast.setText = () => {};
+      expect(SimpleToast.count()).toBe(1);
+      toast.element.click();
+      expect(toast.element.isConnected).toBe(false);
+      expect(closed).toEqual(['dismissed']);
+      expect(SimpleToast.count()).toBe(0);
+    });
+
+    it('still dismisses with Escape and an abort signal when close is overwritten', () => {
+      const controller = new page.window.AbortController();
+      const escaped = SimpleToast('a');
+      escaped.close = () => {};
+      escaped.element.dispatchEvent(new page.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      expect(escaped.element.isConnected).toBe(false);
+      const aborted = SimpleToast({ text: 'b', signal: controller.signal });
+      aborted.close = () => {};
+      controller.abort();
+      expect(aborted.element.isConnected).toBe(false);
+    });
+
+    it('lets the setters work when exists is overwritten', () => {
+      const toast = SimpleToast({ title: 'a', text: 'b', footer: 'c' });
+      toast.exists = () => false;
+      toast.setTitle('T');
+      toast.setText('X');
+      toast.setFooter('F');
+      expect(toast.element.textContent).toBe('TXF');
+    });
+
     it('is a plain object other code can extend', () => {
       const toast = SimpleToast('a');
       toast.cards = [1];
