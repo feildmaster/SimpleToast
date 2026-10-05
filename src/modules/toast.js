@@ -1,5 +1,6 @@
 import { emit } from './events.js';
 import { getRoot, whenConnected } from './root.js';
+import createStructure from './structure.js';
 import { versionNumber, versionString } from './version.js';
 
 const handles = new Set();
@@ -29,12 +30,14 @@ function Toast(input) {
     onClose,
     data,
     signal,
-    role = 'status',
+    role,
     html = true,
     dismissOnClick = true,
   } = options;
-  if (!title && !text && !footer) return blankToast();
   if (signal?.aborted) return blankToast();
+
+  const { el, titleEl, bodyEl, footerEl, buttonsEl } = createStructure();
+  if (!(title && titleEl) && !(text && bodyEl) && !(footer && footerEl)) return blankToast();
 
   const root = getRoot();
   const setContent = (node, value) => {
@@ -49,33 +52,27 @@ function Toast(input) {
     : className;
   const buttonClass = className?.button;
 
-  const el = document.createElement('div');
-  el.className = classes('simpletoast', toastClass);
+  el.classList.add('simpletoast');
+  el.className = classes(el.className, toastClass);
   if (!dismissOnClick) el.classList.add('simpletoast-static');
-  el.setAttribute('role', role);
-  el.tabIndex = 0;
+  el.setAttribute('role', role ?? el.getAttribute('role') ?? 'status');
+  if (!el.hasAttribute('tabindex')) el.tabIndex = 0;
   if (data && typeof data === 'object') {
     Object.keys(data).forEach((key) => {
       el.dataset[key] = data[key];
     });
   }
 
-  const titleEl = el.appendChild(document.createElement('span'));
-  titleEl.className = 'simpletoast-title';
-  const bodyEl = el.appendChild(document.createElement('span'));
-  bodyEl.className = 'simpletoast-body';
-  const footerEl = el.appendChild(document.createElement('span'));
-  footerEl.className = 'simpletoast-footer';
-  if (title) setContent(titleEl, title);
-  if (text) setContent(bodyEl, text);
-  if (footer) setContent(footerEl, footer);
+  if (title && titleEl) setContent(titleEl, title);
+  if (text && bodyEl) setContent(bodyEl, text);
+  if (footer && footerEl) setContent(footerEl, footer);
 
   let closed = false;
 
   const handle = {
     element: el,
     setText: (newText) => {
-      if (newText == null || !handle.exists()) return;
+      if (newText == null || !bodyEl || !handle.exists()) return;
       setContent(bodyEl, newText);
     },
     exists: () => el.isConnected || (!closed && !getRoot().isConnected),
@@ -96,7 +93,7 @@ function Toast(input) {
     handle.close('aborted');
   }
 
-  const buttonList = buttons && typeof buttons === 'object' && !Array.isArray(buttons) ? [buttons] : buttons;
+  const buttonList = typeof buttons === 'object' && !Array.isArray(buttons) ? [buttons] : buttons;
   if (Array.isArray(buttonList)) {
     buttonList.forEach((button) => {
       if (!button?.text) return;
@@ -107,7 +104,13 @@ function Toast(input) {
       if (typeof button.onclick === 'function') {
         buttonEl.addEventListener('click', (event) => button.onclick.call(handle, event, handle));
       }
-      el.insertBefore(buttonEl, footerEl);
+      if (buttonsEl) {
+        buttonsEl.appendChild(buttonEl);
+      } else if (footerEl) {
+        footerEl.parentNode.insertBefore(buttonEl, footerEl);
+      } else {
+        el.appendChild(buttonEl);
+      }
     });
   }
 

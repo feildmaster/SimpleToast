@@ -44,6 +44,32 @@ SimpleToast never sets inline styles. Style toasts with the classes below, or se
 
 Use `className` to add your own classes, and `toast.element` to reach the element directly.
 
+### Template
+
+A page can control the toast's structure with a `<template id="simpletoast-template">`. It is looked up for every toast, so
+it can be added, changed or removed at any time. Without it, the default structure is used.
+
+```html
+<template id="simpletoast-template">
+  <article class="toast">
+    <p class="simpletoast-body"></p>
+    <footer class="simpletoast-footer"></footer>
+  </article>
+</template>
+```
+
+* The first element in the template becomes `toast.element`. SimpleToast adds its own classes, `role`, `tabindex` and
+  the click and keyboard handling to it. A `role` or `tabindex` the template sets is kept (the `role` option still wins).
+* Parts are found inside that element by class: `.simpletoast-title`, `.simpletoast-body`, `.simpletoast-footer`. They
+  must be inside the root, not on it.
+* Only the parts the template has are filled in. The template above has no title, so a `title` option shows nowhere. If
+  none of `title`, `text` or `footer` has a part, the toast is not shown and you get a dead handle, the same as an
+  empty call. `setText` needs a body part and does nothing without one.
+* Buttons go in a `.simpletoast-buttons` element if the template has one. Otherwise they go before the footer, or at the
+  end of the toast when there is no footer.
+* A template whose first element has none of the part classes logs a console warning once, since no toast can be shown. A
+  template with no element at all falls back to the default structure without a warning.
+
 ### Buttons
 
 Buttons do not dismiss the toast. Call `toast.close()` from the handler to close it.

@@ -163,6 +163,33 @@ Not part of the core. The core should only make it possible:
   - It was an icon state, not a real counter. A count could come from the same events, or from the handle count the
     library already exposes (`SimpleToast.count()`).
 
+### Template support (built; the author will not tag 3.0.0 until everything seems right)
+
+The Editor builds its toasts by cloning a `<template id="toast">`. v3 does the same with `<template id="simpletoast-template">`
+(decided: prefixed to avoid collisions, unlike the legacy `#AlertToast`), so a site owner controls the structure and
+only what they want gets filled in (for example, a site that never wants titles leaves the title out).
+
+- `src/modules/structure.js` looks the template up for every toast and imports its first element (`document.importNode`).
+  With no usable template it builds the default structure. The lookup is per toast, so the template can change or go away.
+- Parts are found by the documented class names inside the root: `.simpletoast-title`, `.simpletoast-body`,
+  `.simpletoast-footer`, and an optional `.simpletoast-buttons`. A part on the root itself is not found (a body that was
+  also the root would lose its buttons on `setText`). An option with no matching part renders nowhere.
+- The template's root becomes `toast.element`. The library adds `simpletoast`, keeps the template's own classes, keeps a
+  `role` and `tabindex` the template sets (the `role` option still wins), and adds the click and keyboard handling, so an
+  incomplete template still behaves.
+- Decided: if every provided option (`title`, `text`, `footer`) has no matching part, the toast is blank (dead handle).
+  `setText` is a no-op without a body part. Buttons go in `.simpletoast-buttons` if present, otherwise before the footer
+  (inside the footer's parent), otherwise at the end of the root.
+- Decided: a template whose first element has no title, body or footer part warns once per page (`console.warn`), since every
+  toast is then a dead handle and a typo in a class name would look like toasts never appearing. A template with no element
+  falls back to the default structure with no warning on purpose: the failure is toasts not looking how the owner wants,
+  which is obvious enough.
+- Compatible with the rest: timers, events and the `element` handle only use the root element, and the stylesheet's
+  `:empty` hiding still works. Old 2.x copies ignore the template, so their toasts keep the old structure.
+- Why it matters: it is the path to replacing the Editor's own toast module with SimpleToast, which was the original goal.
+- Types: the UnderScript plugin type says `element: HTMLElement`, matching SimpleToast's contract. The tag name is not
+  promised, so a template can use an `article` (the Editor does) without breaking anyone.
+
 ## What actually runs today
 
 - UnderScript loads SimpleToast through `@require` in `UnderScript/src/meta.js`. That was **2.0.0** until the bump to
