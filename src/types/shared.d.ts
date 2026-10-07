@@ -40,7 +40,7 @@ export interface SimpleToastBaseOptions {
 export interface SimpleToastTimerOptions {
   timeout?: number;
   pauseOnHover?: boolean;
-  idle?: number | false;
+  idle?: number | boolean;
 }
 
 export interface SimpleToastFactory<Options> {

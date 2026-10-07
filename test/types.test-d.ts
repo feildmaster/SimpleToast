@@ -34,7 +34,7 @@ describe('types', () => {
 
   it('types the options', () => {
     expectTypeOf<SimpleToastOptions['timeout']>().toEqualTypeOf<number | undefined>();
-    expectTypeOf<SimpleToastOptions['idle']>().toEqualTypeOf<number | false | undefined>();
+    expectTypeOf<SimpleToastOptions['idle']>().toEqualTypeOf<number | boolean | undefined>();
     expectTypeOf<SimpleToastOptions['signal']>().toEqualTypeOf<AbortSignal | undefined>();
     expectTypeOf<SimpleToastOptions['html']>().toEqualTypeOf<boolean | undefined>();
     expectTypeOf<SimpleToastOptions['dismissOnClick']>().toEqualTypeOf<boolean | undefined>();

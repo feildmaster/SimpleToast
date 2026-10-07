@@ -112,7 +112,7 @@ const toast = new SimpleToast({
     signal: abortController.signal, // Closes the toast with reason 'aborted'
     timeout: 0, // Close toast after # milliseconds
     pauseOnHover: true, // Timer pauses while the toast is hovered or focused
-    idle: 30000, // Timer holds after # milliseconds without input, false to disable
+    idle: 30000, // Timer holds after # milliseconds without input. true is the default, false (or 0) disables
     onClose(reason, toast) {
         // this; // toast reference
     },

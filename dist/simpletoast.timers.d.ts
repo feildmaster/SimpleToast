@@ -1,7 +1,7 @@
 interface SimpleToastTimerOptions {
   timeout?: number;
   pauseOnHover?: boolean;
-  idle?: number | false;
+  idle?: number | boolean;
 }
 
 declare module './simpletoast.core' {

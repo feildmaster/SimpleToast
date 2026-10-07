@@ -44,6 +44,27 @@ describe('timeouts', () => {
     expect(page.clock.countTimers()).toBe(0);
   });
 
+  it.each([Infinity, -Infinity, NaN, 0, -1, null, 'later'])('do not start for a timeout of %s', (timeout) => {
+    const toast = SimpleToast({ text: 'a', timeout, idle: false });
+    expect(page.clock.countTimers()).toBe(0);
+    expect(toast.element.hasAttribute('data-simpletoast-timed')).toBe(false);
+    tick(60000);
+    expect(toast.exists()).toBe(true);
+  });
+
+  it('wait in steps for a timeout longer than a timer can hold', () => {
+    const limit = 2 ** 31 - 1;
+    const toast = SimpleToast({ text: 'a', timeout: limit + 1000, idle: false });
+    const start = page.clock.now;
+    page.clock.next();
+    expect(page.clock.now - start).toBe(limit);
+    expect(toast.exists()).toBe(true);
+    tick(999);
+    expect(toast.exists()).toBe(true);
+    tick(1);
+    expect(toast.exists()).toBe(false);
+  });
+
   describe('hover and focus', () => {
     it('pause while hovered and resume with the remaining time', () => {
       const toast = SimpleToast({ text: 'a', timeout: 100 });
@@ -160,6 +181,27 @@ describe('timeouts', () => {
       const toast = SimpleToast({ text: 'a', timeout: 90000, idle: false });
       tick(90000);
       expect(toast.exists()).toBe(false);
+    });
+
+    it.each([0, null, NaN, -5, 'soon'])('are turned off by %s', (idle) => {
+      const toast = SimpleToast({ text: 'a', timeout: 40000, idle });
+      tick(40000);
+      expect(toast.exists()).toBe(false);
+    });
+
+    it('use the default threshold for true', () => {
+      const toast = SimpleToast({ text: 'a', timeout: 40000, idle: true });
+      tick(40000);
+      expect(toast.exists()).toBe(true);
+      page.input();
+      tick(10000);
+      expect(toast.exists()).toBe(false);
+    });
+
+    it('accept a numeric string as the threshold', () => {
+      const toast = SimpleToast({ text: 'a', timeout: 1000, idle: '800' });
+      tick(5000);
+      expect(toast.exists()).toBe(true);
     });
 
     it('treat every kind of input as activity', () => {

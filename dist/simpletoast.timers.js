@@ -1,5 +1,6 @@
 ((root) => {
 const DEFAULT_IDLE = 30000;
+const MAX_DELAY = 2 ** 31 - 1;
 const MARK = 'data-simpletoast-timed';
 const INPUT_EVENTS = ['pointerdown', 'pointermove', 'keydown', 'touchstart', 'wheel'];
 
@@ -30,7 +31,7 @@ function sync(timer) {
   if (reason) return;
   timer.startedAt = now;
   const untilIdle = timer.idle === false ? Infinity : Math.max(0, lastInput + timer.idle - now);
-  timer.id = setTimeout(() => sync(timer), Math.min(timer.remaining, untilIdle));
+  timer.id = setTimeout(() => sync(timer), Math.min(timer.remaining, untilIdle, MAX_DELAY));
 }
 
 function listen() {
@@ -53,8 +54,14 @@ function listen() {
   });
 }
 
-function createTimer({ timeout, pauseOnHover = true, idle = DEFAULT_IDLE }, expire) {
-  if (!timeout || !(timeout > 0)) return null;
+function idleThreshold(idle) {
+  if (idle === undefined || idle === true) return DEFAULT_IDLE;
+  const threshold = Number(idle);
+  return threshold > 0 && Number.isFinite(threshold) ? threshold : false;
+}
+
+function createTimer({ timeout, pauseOnHover = true, idle }, expire) {
+  if (!(timeout && timeout > 0 && Number.isFinite(timeout))) return null;
   return {
     remaining: timeout,
     startedAt: null,
@@ -63,7 +70,7 @@ function createTimer({ timeout, pauseOnHover = true, idle = DEFAULT_IDLE }, expi
     focus: false,
     idleHeld: false,
     pauseOnHover,
-    idle: idle === false ? false : Number(idle),
+    idle: idleThreshold(idle),
     expire,
   };
 }
