@@ -14,6 +14,8 @@ Small (but powerful) toast library.
 | `dist/simpletoast.core.d.ts` | Type definitions for `simpletoast.core.js` (no `timeout`, `pauseOnHover` or `idle`). |
 | `dist/simpletoast.timers.d.ts` | Adds `timeout`, `pauseOnHover` and `idle` to the core types. Import it next to `simpletoast.core.d.ts`. |
 
+The default build injects its stylesheet as a `<style>` element, which a Content Security Policy with a strict `style-src` blocks. On such pages, use `simpletoast.core.js` (plus `simpletoast.timers.js` for timeouts) and load `simpletoast.css` with a `<link rel="stylesheet">` from an origin the policy allows.
+
 `npm run build` regenerates all of them from `src/`.
 
 ## Usage
