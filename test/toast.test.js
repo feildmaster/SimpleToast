@@ -79,6 +79,22 @@ describe('toast', () => {
     expect(element.dataset.kind).toBe('info');
   });
 
+  it('accepts hyphenated data keys as they are', () => {
+    const { element } = SimpleToast({ text: 'a', data: { 'user-id': 5 } });
+    expect(element.getAttribute('data-user-id')).toBe('5');
+  });
+
+  it('turns camelCase data keys into hyphenated attributes', () => {
+    const { element } = SimpleToast({ text: 'a', data: { userId: 5 } });
+    expect(element.getAttribute('data-user-id')).toBe('5');
+    expect(element.dataset.userId).toBe('5');
+  });
+
+  it('throws for a data key that is not a valid attribute name', () => {
+    expect(() => SimpleToast({ text: 'a', data: { 'bad key': 1 } })).toThrow();
+    expect(SimpleToast.count()).toBe(0);
+  });
+
   it('renders as text when html is false', () => {
     const toast = SimpleToast({ title: '<i>t</i>', text: '<b>x</b>', footer: '<u>f</u>', html: false, buttons: { text: '<s>b</s>' } });
     expect(toast.element.querySelector('b, i, u, s')).toBe(null);

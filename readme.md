@@ -105,7 +105,7 @@ const toast = new SimpleToast({
         toast: '' || [''],
         button: '' || [''],
     },
-    data: { priority: true }, // Becomes data-* attributes on the toast
+    data: { priority: true }, // Becomes data-* attributes on the toast (userId becomes data-user-id; an invalid name throws)
     html: true, // false renders title, text, footer and button text as plain text
     dismissOnClick: true, // false: clicking the toast (or Enter/Space on it) no longer dismisses it
     role: 'status', // 'alert' for errors

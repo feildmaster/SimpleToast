@@ -28,6 +28,9 @@ function splitClassName(className) {
   return { toast: className, button: undefined };
 }
 
+/** @param {string} key */
+const dataAttribute = (key) => `data-${key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`;
+
 function noop() {}
 
 /** @returns {SimpleToastHandle} */
@@ -85,7 +88,7 @@ function Toast(input) {
   if (!el.hasAttribute('tabindex')) el.tabIndex = 0;
   if (data && typeof data === 'object') {
     Object.keys(data).forEach((key) => {
-      el.dataset[key] = String(data[key]);
+      el.setAttribute(dataAttribute(key), String(data[key]));
     });
   }
 
