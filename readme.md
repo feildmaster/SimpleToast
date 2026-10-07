@@ -38,6 +38,7 @@ SimpleToast never sets inline styles. Style toasts with the classes below, or se
 | `.simpletoast-title` | Title (hidden when empty) |
 | `.simpletoast-body` | Text |
 | `.simpletoast-footer` | Footer (hidden when empty) |
+| `.simpletoast-buttons` | Optional container for the buttons, from a [template](#template) |
 | `.simpletoast-button` | Buttons |
 
 Use `className` to add your own classes, and `toast.element` to reach the element directly.
@@ -55,11 +56,21 @@ A page can control the toast's structure with a `<template id="simpletoast-templ
 </template>
 ```
 
-* The first element in the template becomes `toast.element`. SimpleToast adds its own classes, `role`, `tabindex` and the click and keyboard handling to it. A `role` or `tabindex` the template sets is kept (the `role` option still wins).
-* Parts are found inside that element by class: `.simpletoast-title`, `.simpletoast-body`, `.simpletoast-footer`. They must be inside the root, not on it.
+* A template with one element uses that element as `toast.element`. A template with several top-level elements has them wrapped in a `<div>`, which becomes `toast.element`:
+
+  ```html
+  <template id="simpletoast-template">
+    <header class="simpletoast-title"></header>
+    <div class="simpletoast-body"></div>
+    <footer class="simpletoast-footer"></footer>
+  </template>
+  ```
+
+* SimpleToast adds its own classes, `role`, `tabindex` and the click and keyboard handling to `toast.element`. A `role` or `tabindex` on a single root element is kept (the `role` option still wins).
+* Parts are found inside `toast.element` by class: `.simpletoast-title`, `.simpletoast-body`, `.simpletoast-footer` and the optional `.simpletoast-buttons`. With a single root element they must be inside it, not on it.
 * Only the parts the template has are filled in. The template above has no title, so a `title` option shows nowhere. If none of `title`, `text` or `footer` has a part, the toast is not shown and you get a dead handle, the same as an empty call. Each of `setText`, `setTitle` and `setFooter` needs its part in the template and does nothing without it. Likewise, `setTitle` also needs a body part to do anything.
 * Buttons go in a `.simpletoast-buttons` element if the template has one. Otherwise they go before the footer, or at the end of the toast when there is no footer.
-* A template whose first element has none of the part classes logs a console warning once, since no toast can be shown. A template with no element at all falls back to the default structure without a warning.
+* A template with none of the part classes logs a console warning once, since no toast can be shown. A template with no element at all falls back to the default structure without a warning.
 
 ### Buttons
 

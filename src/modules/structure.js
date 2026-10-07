@@ -18,6 +18,13 @@ let warned = false;
  */
 const part = (el, name) => el.querySelector(`.simpletoast-${name}`);
 
+/** @param {DocumentFragment} fragment */
+function wrap(fragment) {
+  const el = document.createElement('div');
+  el.append(fragment);
+  return el;
+}
+
 /**
  * @param {HTMLElement} el
  * @returns {Structure}
@@ -34,12 +41,12 @@ function describe(el) {
 
 function fromTemplate() {
   const template = /** @type {HTMLTemplateElement | null} */ (document.getElementById(TEMPLATE_ID));
-  const first = template?.content?.firstElementChild;
-  if (!first) return null;
-  const parts = describe(/** @type {HTMLElement} */ (document.importNode(first, true)));
+  if (!template?.content?.childElementCount) return null;
+  const copy = document.importNode(template.content, true);
+  const parts = describe(copy.childElementCount === 1 ? /** @type {HTMLElement} */ (copy.firstElementChild) : wrap(copy));
   if (!warned && !parts.titleEl && !parts.bodyEl && !parts.footerEl) {
     warned = true;
-    console.warn(`SimpleToast: #${TEMPLATE_ID} has no .simpletoast-title, .simpletoast-body or .simpletoast-footer inside its first element, so toasts will not be shown.`);
+    console.warn(`SimpleToast: #${TEMPLATE_ID} has no .simpletoast-title, .simpletoast-body or .simpletoast-footer element inside it, so toasts will not be shown.`);
   }
   return parts;
 }

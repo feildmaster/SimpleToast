@@ -85,11 +85,6 @@ describe('template', () => {
       expect(SimpleToast('x').element.tagName).toBe('DIV');
     });
 
-    it('uses the first element when there are several', () => {
-      setTemplate('<aside><i class="simpletoast-body"></i></aside><article class="other"></article>');
-      expect(SimpleToast('x').element.tagName).toBe('ASIDE');
-    });
-
     it('keeps the other markup the template has', () => {
       setTemplate('<article><i class="icon"></i><span class="simpletoast-body"></span></article>');
       expect(SimpleToast('x').element.querySelector('.icon')).not.toBe(null);
@@ -136,6 +131,64 @@ describe('template', () => {
       const toast = SimpleToast({ text: 'x', timeout: 100, idle: false });
       page.clock.tick(100);
       expect(toast.exists()).toBe(false);
+    });
+  });
+
+  describe('with several top-level elements', () => {
+    beforeEach(() => {
+      setTemplate(`
+        <header class="simpletoast-title"></header>
+        <div class="simpletoast-body"></div>
+        <footer class="simpletoast-footer"></footer>
+      `);
+    });
+
+    it('wraps them in a div that becomes the toast element', () => {
+      const toast = SimpleToast({ title: 'T', text: 'x', footer: 'F' });
+      expect(toast.element.tagName).toBe('DIV');
+      expect(toast.element.parentElement).toBe(page.root());
+      expect([...toast.element.children].map((child) => child.tagName)).toEqual(['HEADER', 'DIV', 'FOOTER']);
+    });
+
+    it('fills the parts and applies the usual attributes', () => {
+      const toast = SimpleToast({ title: 'T', text: 'x', footer: 'F', className: 'mine' });
+      expect(toast.element.querySelector('.simpletoast-title').textContent).toBe('T');
+      expect(toast.element.querySelector('.simpletoast-body').textContent).toBe('x');
+      expect(toast.element.querySelector('.simpletoast-footer').textContent).toBe('F');
+      expect(toast.element.className).toBe('simpletoast mine');
+      expect(toast.element.getAttribute('role')).toBe('status');
+      expect(toast.element.tabIndex).toBe(0);
+    });
+
+    it('gives each toast its own copy', () => {
+      const a = SimpleToast('a');
+      const b = SimpleToast('b');
+      expect(a.element).not.toBe(b.element);
+      expect(a.element.textContent).toContain('a');
+      expect(b.element.textContent).not.toContain('a');
+    });
+
+    it('puts buttons before the footer', () => {
+      const { element } = SimpleToast({ text: 'x', footer: 'F', buttons: { text: 'b' } });
+      expect([...element.children].map((child) => child.tagName)).toEqual(['HEADER', 'DIV', 'BUTTON', 'FOOTER']);
+    });
+
+    it('lets the setters change the parts', () => {
+      const toast = SimpleToast({ title: 'T', text: 'x' });
+      toast.setTitle('New');
+      expect(toast.element.querySelector('.simpletoast-title').textContent).toBe('New');
+    });
+
+    it('still uses a single element as the root when there is whitespace around it', () => {
+      setTemplate('\n  <aside><i class="simpletoast-body"></i></aside>\n  ');
+      expect(SimpleToast('x').element.tagName).toBe('ASIDE');
+    });
+
+    it('wraps elements that are not parts too', () => {
+      setTemplate('<aside><i class="simpletoast-body"></i></aside><article class="other"></article>');
+      const { element } = SimpleToast('x');
+      expect(element.tagName).toBe('DIV');
+      expect(element.querySelector('article.other')).not.toBe(null);
     });
   });
 
@@ -267,6 +320,12 @@ describe('template', () => {
       const message = warn.mock.calls[0][0];
       expect(message).toContain('simpletoast-template');
       expect(message).toContain('.simpletoast-body');
+    });
+
+    it('also name the template when several elements have no parts', () => {
+      setTemplate('<header></header><div></div>');
+      expect(SimpleToast('x').exists()).toBe(false);
+      expect(warn).toHaveBeenCalledOnce();
     });
 
     it('warn once however many toasts are shown', () => {
