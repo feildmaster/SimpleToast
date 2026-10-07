@@ -39,6 +39,22 @@ describe('timeouts', () => {
     expect(b.exists()).toBe(false);
   });
 
+  it('close the toast even when its close method is overwritten afterwards', () => {
+    const onClose = vi.fn();
+    const toast = SimpleToast({ text: 'a', timeout: 100, idle: false, onClose });
+    toast.close = () => {};
+    tick(100);
+    expect(toast.element.isConnected).toBe(false);
+    expect(onClose.mock.calls[0][0]).toBe('timeout');
+  });
+
+  it('start even when exists is overwritten afterwards', () => {
+    const toast = SimpleToast({ text: 'a', timeout: 100, idle: false });
+    toast.exists = () => false;
+    tick(100);
+    expect(toast.element.isConnected).toBe(false);
+  });
+
   it('leave no timers behind after a manual close', () => {
     SimpleToast({ text: 'a', timeout: 1000 }).close();
     expect(page.clock.countTimers()).toBe(0);

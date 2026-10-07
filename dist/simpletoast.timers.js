@@ -108,9 +108,9 @@ function bindPresence(timer, el) {
 function installTimers() {
   document.addEventListener('simpletoast:add', (event) => {
     const { toast, options } = event.detail;
-    const el = toast.element;
-    if (!options || el.hasAttribute(MARK) || !toast.exists()) return;
-    const timer = createTimer(options, () => toast.close('timeout'));
+    const { element: el, exists, close } = toast;
+    if (!options || el.hasAttribute(MARK) || !exists()) return;
+    const timer = createTimer(options, () => close('timeout'));
     if (!timer) return;
     el.setAttribute(MARK, '');
     bindPresence(timer, el);
