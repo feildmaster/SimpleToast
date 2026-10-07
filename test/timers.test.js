@@ -138,6 +138,13 @@ describe('timeouts', () => {
       expect(toast.exists()).toBe(false);
     });
 
+    it('start counting at the first timed toast, not when the page loaded', () => {
+      tick(60000);
+      const toast = SimpleToast({ text: 'a', timeout: 1000 });
+      tick(1000);
+      expect(toast.exists()).toBe(false);
+    });
+
     it('use the idle option as the threshold', () => {
       const toast = SimpleToast({ text: 'a', timeout: 1000, idle: 800 });
       tick(5000);

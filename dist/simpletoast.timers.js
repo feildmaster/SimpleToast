@@ -36,6 +36,7 @@ function sync(timer) {
 function listen() {
   if (listening) return;
   listening = true;
+  lastInput = Date.now();
   const onInput = () => {
     lastInput = Date.now();
     timed.forEach((timer) => {
