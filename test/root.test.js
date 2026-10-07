@@ -93,6 +93,49 @@ describe('root and publishing', () => {
       expect(early.exists()).toBe(false);
     });
 
+    it('puts its root back when it was removed after load', () => {
+      page = createPage();
+      const SimpleToast = page.load();
+      page.root().remove();
+      const toast = SimpleToast({ text: 'x', timeout: 100, idle: false });
+      expect(page.root().contains(toast.element)).toBe(true);
+      page.clock.tick(100);
+      expect(toast.exists()).toBe(false);
+    });
+
+    it('adopts a root the page put back after load', () => {
+      page = createPage();
+      const SimpleToast = page.load();
+      page.root().remove();
+      const other = page.document.createElement('div');
+      other.id = 'AlertToast';
+      page.document.body.appendChild(other);
+      const toast = SimpleToast({ text: 'x', timeout: 100, idle: false });
+      expect(other.contains(toast.element)).toBe(true);
+      expect(page.document.querySelectorAll('#AlertToast').length).toBe(1);
+      page.clock.tick(100);
+      expect(toast.exists()).toBe(false);
+    });
+
+    it('starts the timeout of a toast made while the root was detached once the page puts it back', async () => {
+      page = createPage();
+      const SimpleToast = page.load();
+      const root = page.root();
+      root.remove();
+      page.document.body.remove();
+      const toast = SimpleToast({ text: 'x', timeout: 100, idle: false });
+      page.clock.tick(500);
+      expect(toast.exists()).toBe(true);
+
+      const body = page.document.createElement('body');
+      page.document.documentElement.appendChild(body);
+      body.appendChild(root);
+      await Promise.resolve();
+      await Promise.resolve();
+      page.clock.tick(100);
+      expect(toast.exists()).toBe(false);
+    });
+
     it('does nothing in a frame', () => {
       page = createPage('<!doctype html><body><iframe></iframe></body>');
       const frame = page.document.querySelector('iframe').contentWindow;

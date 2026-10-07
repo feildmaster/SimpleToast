@@ -4,7 +4,9 @@ const css = ".simpletoast-root {\n  display: flex;\n  flex-direction: column-rev
 const ROOT_ID = 'AlertToast';
 
 let rootElement = null;
+let settled = false;
 const pending = [];
+let observer = null;
 
 function prepareRoot(el) {
   el.classList.add('simpletoast-root');
@@ -17,10 +19,44 @@ function flush() {
   pending.splice(0).forEach((callback) => callback(getRoot()));
 }
 
+function reconnect() {
+  const current = getRoot();
+  if (!settled || current.isConnected || !document.body) return;
+  const other = document.getElementById(ROOT_ID);
+  if (other) {
+    prepareRoot(other).append(...current.childNodes);
+    rootElement = other;
+  } else {
+    document.body.appendChild(current);
+  }
+}
+
+function unwatch() {
+  observer?.disconnect();
+  observer = null;
+}
+
+function watch() {
+  if (!settled || observer) return;
+  observer = new MutationObserver(sync$1);
+  observer.observe(document, { childList: true, subtree: true });
+}
+
+function sync$1() {
+  reconnect();
+  if (getRoot().isConnected) flush();
+  if (pending.length) {
+    watch();
+  } else {
+    unwatch();
+  }
+}
+
 function initRoot() {
   const existing = document.getElementById(ROOT_ID);
   if (existing) {
     rootElement = prepareRoot(existing);
+    settled = true;
     return;
   }
   const el = prepareRoot(document.createElement('div'));
@@ -28,29 +64,20 @@ function initRoot() {
   rootElement = el;
   if (document.body) {
     document.body.appendChild(el);
+    settled = true;
     return;
   }
   document.addEventListener('DOMContentLoaded', () => {
-    const other = document.getElementById(ROOT_ID);
-    if (other) {
-      prepareRoot(other).append(...el.childNodes);
-      rootElement = other;
-    } else {
-      document.body.appendChild(el);
-    }
-    flush();
+    settled = true;
+    sync$1();
   }, { once: true });
 }
 
 const getRoot = () => rootElement;
 
 function whenConnected(callback) {
-  const root = getRoot();
-  if (root.isConnected) {
-    callback(root);
-  } else {
-    pending.push(callback);
-  }
+  pending.push(callback);
+  sync$1();
 }
 
 function emit(target, type, detail, bubbles = false) {
