@@ -113,6 +113,24 @@ describe('root and publishing', () => {
       expect(styles()[0].dataset.version).toBe(packageJson.version);
     });
 
+    it('is injected before the page stylesheets', () => {
+      page = createPage();
+      const meta = page.document.createElement('meta');
+      const pageStyle = page.document.createElement('style');
+      page.document.head.append(meta, pageStyle);
+      page.load();
+      expect(styles()[0].nextElementSibling).toBe(pageStyle);
+      expect(styles()[0].previousElementSibling).toBe(meta);
+    });
+
+    it('is injected at the end of an otherwise empty head', () => {
+      page = createPage();
+      const meta = page.document.createElement('meta');
+      page.document.head.appendChild(meta);
+      page.load();
+      expect(page.document.head.lastElementChild).toBe(styles()[0]);
+    });
+
     it('is not injected again by a second copy', () => {
       page = createPage();
       page.load(sources.injecting, { sandbox: true });

@@ -13,5 +13,10 @@ export function injectStylesheet(css) {
   el.dataset.simpletoastStylesheet = '';
   el.dataset.version = versionString;
   el.textContent = css;
-  (document.head || document.documentElement).appendChild(el);
+  const { head } = document;
+  if (!head) {
+    document.documentElement.appendChild(el);
+    return;
+  }
+  head.insertBefore(el, head.querySelector(':scope > style, :scope > link[rel~="stylesheet"]'));
 }
