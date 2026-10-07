@@ -154,3 +154,4 @@ The root is a polite live region and each toast has `role="status"`. Toasts are 
 
 * Only the top frame gets SimpleToast; nothing is defined in iframes.
 * The `css` option from 2.x is gone. Use classes, custom properties or `toast.element`.
+* The builds moved to `dist/` in 3.0, and the root `simpletoast.js` from 2.x no longer exists. Load a tagged file instead of one from the default branch, for example `https://raw.githubusercontent.com/feildmaster/SimpleToast/3.0.0/dist/simpletoast.js`.
