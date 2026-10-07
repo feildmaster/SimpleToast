@@ -278,13 +278,30 @@ describe('root and publishing', () => {
       [`${major}.${minor}.${patch + 1}`, false],
       [`${major}.${minor + 1}`, false],
       [`${Math.max(major + 1, 10)}.0`, false],
-      [`${major}.${minor}`, patch > 0],
     ])('compares against a global at %s (replaced: %s)', (existing, replaced) => {
       page = createPage();
       const other = Object.assign(() => {}, { version: 1, versionString: existing });
       page.window.SimpleToast = other;
       page.load();
       expect(page.window.SimpleToast === other).toBe(!replaced);
+    });
+
+    describe('with a two-part global', () => {
+      const withVersion = (source, version) => source.replace(`"${packageJson.version}"`, `"${version}"`);
+
+      it.each([
+        ['3.0.1', '3.0', true],
+        ['3.0.0', '3.0', false],
+        ['3.0.1', '3', true],
+        ['3.1.0', '3.0', true],
+        ['3.0.0', '3.1', false],
+      ])('compares %s against a global at %s (replaced: %s)', (version, existing, replaced) => {
+        page = createPage();
+        const other = Object.assign(() => {}, { version: 1, versionString: existing });
+        page.window.SimpleToast = other;
+        page.load(withVersion(sources.injecting, version));
+        expect(page.window.SimpleToast === other).toBe(!replaced);
+      });
     });
 
     it('is frozen', () => {

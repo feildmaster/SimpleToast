@@ -2,7 +2,7 @@ import version from 'package-version';
 
 /** @param {string | number | undefined} string */
 function parse(string) {
-  const [one, two, three] = String(string).split('.').map(Number);
+  const [one = 0, two = 0, three = 0] = String(string).split('.').map((part) => Number(part) || 0);
   return [one, two, three];
 }
 
