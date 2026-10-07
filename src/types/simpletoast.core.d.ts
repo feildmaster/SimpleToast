@@ -18,4 +18,6 @@ declare global {
   }
 
   interface HTMLElementEventMap extends SimpleToastEvents<SimpleToastOptions> {}
+
+  interface DocumentEventMap extends SimpleToastEvents<SimpleToastOptions> {}
 }

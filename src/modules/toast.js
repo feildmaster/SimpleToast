@@ -3,15 +3,34 @@ import { getRoot, whenConnected } from './root.js';
 import createStructure from './structure.js';
 import { versionNumber, versionString } from './version.js';
 
+/** @typedef {import('../types/shared').SimpleToastHandle} SimpleToastHandle */
+/** @typedef {import('../types/shared').SimpleToastBaseOptions} SimpleToastBaseOptions */
+/** @typedef {import('../types/shared').SimpleToastClassName} SimpleToastClassName */
+/** @template O @typedef {import('../types/shared').SimpleToastFactory<O>} SimpleToastFactory */
+
+/** @type {Set<() => boolean>} */
 const open = new Set();
 
+/**
+ * @param {string} base
+ * @param {SimpleToastClassName | undefined} extra
+ */
 function classes(base, extra) {
   const list = Array.isArray(extra) ? extra : [extra];
   return [base, ...list].filter(Boolean).join(' ');
 }
 
+/** @param {SimpleToastBaseOptions['className']} className */
+function splitClassName(className) {
+  if (className && typeof className === 'object' && !Array.isArray(className)) {
+    return { toast: className.toast, button: className.button };
+  }
+  return { toast: className, button: undefined };
+}
+
 function noop() {}
 
+/** @returns {SimpleToastHandle} */
 const blankToast = () => Object.freeze({
   element: document.createElement('div'),
   setText: noop,
@@ -21,6 +40,10 @@ const blankToast = () => Object.freeze({
   close: noop,
 });
 
+/**
+ * @param {SimpleToastBaseOptions | string} [input]
+ * @returns {SimpleToastHandle}
+ */
 function Toast(input) {
   const options = typeof input === 'string' ? { text: input } : input || {};
   const {
@@ -42,6 +65,10 @@ function Toast(input) {
   if (!(title && titleEl) && !(text && bodyEl) && !(footer && footerEl)) return blankToast();
 
   const root = getRoot();
+  /**
+   * @param {HTMLElement} node
+   * @param {string} value
+   */
   const setContent = (node, value) => {
     if (html) {
       node.innerHTML = value;
@@ -49,10 +76,7 @@ function Toast(input) {
       node.textContent = value;
     }
   };
-  const toastClass = className && typeof className === 'object' && !Array.isArray(className)
-    ? className.toast
-    : className;
-  const buttonClass = className?.button;
+  const { toast: toastClass, button: buttonClass } = splitClassName(className);
 
   el.classList.add('simpletoast');
   el.className = classes(el.className, toastClass);
@@ -61,7 +85,7 @@ function Toast(input) {
   if (!el.hasAttribute('tabindex')) el.tabIndex = 0;
   if (data && typeof data === 'object') {
     Object.keys(data).forEach((key) => {
-      el.dataset[key] = data[key];
+      el.dataset[key] = String(data[key]);
     });
   }
 
@@ -71,8 +95,8 @@ function Toast(input) {
 
   let closed = false;
 
-  const handle = { element: el };
   const exists = () => el.isConnected || (!closed && !getRoot().isConnected);
+  /** @param {import('../types/shared').SimpleToastCloseReason} [reason] */
   function close(reason = 'unknown') {
     if (closed) return;
     closed = true;
@@ -85,14 +109,23 @@ function Toast(input) {
       onClose.call(handle, reason, handle);
     }
   }
+  /**
+   * @param {HTMLElement | null} element
+   * @param {string | null | undefined} content
+   */
   function set(element, content) {
     if (content == null || !element || !exists()) return;
     setContent(element, content);
   }
-  Object.assign(handle, { exists, close });
-  handle.setTitle = set.bind(null, titleEl);
-  handle.setText = set.bind(null, bodyEl);
-  handle.setFooter = set.bind(null, footerEl);
+  /** @type {SimpleToastHandle} */
+  const handle = {
+    element: el,
+    exists,
+    close,
+    setTitle: set.bind(null, titleEl),
+    setText: set.bind(null, bodyEl),
+    setFooter: set.bind(null, footerEl),
+  };
   const onAbort = () => close('aborted');
 
   const buttonList = typeof buttons === 'object' && !Array.isArray(buttons) ? [buttons] : buttons;
@@ -110,7 +143,7 @@ function Toast(input) {
       if (buttonsEl) {
         buttonsEl.appendChild(buttonEl);
       } else if (footerEl) {
-        footerEl.parentNode.insertBefore(buttonEl, footerEl);
+        footerEl.before(buttonEl);
       } else {
         el.appendChild(buttonEl);
       }
@@ -118,7 +151,7 @@ function Toast(input) {
   }
 
   el.addEventListener('click', (event) => {
-    if (!dismissOnClick || event.target.closest('button')) return;
+    if (!dismissOnClick || /** @type {Element} */ (event.target).closest('button')) return;
     close('dismissed');
   });
   el.addEventListener('keydown', (event) => {
@@ -146,4 +179,4 @@ Toast.versionString = versionString;
 Toast.count = () => Array.from(open).filter((stillExists) => stillExists()).length;
 Object.freeze(Toast);
 
-export default Toast;
+export default /** @type {SimpleToastFactory<SimpleToastBaseOptions>} */ (/** @type {unknown} */ (Toast));

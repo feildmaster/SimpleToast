@@ -53,11 +53,11 @@ function listen() {
 }
 
 function createTimer({ timeout, pauseOnHover = true, idle = DEFAULT_IDLE }, expire) {
-  if (!(timeout > 0)) return null;
+  if (!timeout || !(timeout > 0)) return null;
   return {
     remaining: timeout,
     startedAt: null,
-    id: null,
+    id: undefined,
     hover: false,
     focus: false,
     idleHeld: false,

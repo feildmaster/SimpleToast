@@ -1,11 +1,28 @@
+/** @typedef {import('../types/shared').SimpleToastTimerOptions} SimpleToastTimerOptions */
+
 const DEFAULT_IDLE = 30000;
 const MARK = 'data-simpletoast-timed';
 const INPUT_EVENTS = ['pointerdown', 'pointermove', 'keydown', 'touchstart', 'wheel'];
 
+/**
+ * @typedef {object} Timer
+ * @property {number} remaining
+ * @property {number | null} startedAt
+ * @property {ReturnType<typeof setTimeout> | undefined} id
+ * @property {boolean} hover
+ * @property {boolean} focus
+ * @property {boolean} idleHeld
+ * @property {boolean} pauseOnHover
+ * @property {number | false} idle
+ * @property {() => void} expire
+ */
+
+/** @type {Set<Timer>} */
 const timed = new Set();
 let lastInput = Date.now();
 let listening = false;
 
+/** @param {Timer} timer */
 function holdReason(timer) {
   if (timer.pauseOnHover && (timer.hover || timer.focus)) return 'presence';
   if (document.visibilityState !== 'visible' || !document.hasFocus()) return 'page';
@@ -13,6 +30,7 @@ function holdReason(timer) {
   return null;
 }
 
+/** @param {Timer} timer */
 function sync(timer) {
   const now = Date.now();
   if (timer.startedAt !== null) {
@@ -51,12 +69,17 @@ function listen() {
   });
 }
 
+/**
+ * @param {SimpleToastTimerOptions} options
+ * @param {() => void} expire
+ * @returns {Timer | null}
+ */
 function createTimer({ timeout, pauseOnHover = true, idle = DEFAULT_IDLE }, expire) {
-  if (!(timeout > 0)) return null;
+  if (!timeout || !(timeout > 0)) return null;
   return {
     remaining: timeout,
     startedAt: null,
-    id: null,
+    id: undefined,
     hover: false,
     focus: false,
     idleHeld: false,
@@ -66,17 +89,23 @@ function createTimer({ timeout, pauseOnHover = true, idle = DEFAULT_IDLE }, expi
   };
 }
 
+/** @param {Timer} timer */
 function startTimer(timer) {
   timed.add(timer);
   listen();
   sync(timer);
 }
 
+/** @param {Timer} timer */
 function stopTimer(timer) {
   clearTimeout(timer.id);
   timed.delete(timer);
 }
 
+/**
+ * @param {Timer} timer
+ * @param {HTMLElement} el
+ */
 function bindPresence(timer, el) {
   el.addEventListener('pointerenter', () => {
     timer.hover = true;

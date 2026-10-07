@@ -14,7 +14,7 @@ function prepareRoot(el) {
 }
 
 function flush() {
-  pending.splice(0).forEach((callback) => callback(rootElement));
+  pending.splice(0).forEach((callback) => callback(getRoot()));
 }
 
 function initRoot() {
@@ -45,8 +45,9 @@ function initRoot() {
 const getRoot = () => rootElement;
 
 function whenConnected(callback) {
-  if (rootElement.isConnected) {
-    callback(rootElement);
+  const root = getRoot();
+  if (root.isConnected) {
+    callback(root);
   } else {
     pending.push(callback);
   }
@@ -73,7 +74,8 @@ function describe(el) {
 }
 
 function fromTemplate() {
-  const first = document.getElementById(TEMPLATE_ID)?.content?.firstElementChild;
+  const template = document.getElementById(TEMPLATE_ID);
+  const first = template?.content?.firstElementChild;
   if (!first) return null;
   const parts = describe(document.importNode(first, true));
   if (!warned && !parts.titleEl && !parts.bodyEl && !parts.footerEl) {
@@ -120,6 +122,13 @@ function classes(base, extra) {
   return [base, ...list].filter(Boolean).join(' ');
 }
 
+function splitClassName(className) {
+  if (className && typeof className === 'object' && !Array.isArray(className)) {
+    return { toast: className.toast, button: className.button };
+  }
+  return { toast: className, button: undefined };
+}
+
 function noop() {}
 
 const blankToast = () => Object.freeze({
@@ -159,10 +168,7 @@ function Toast(input) {
       node.textContent = value;
     }
   };
-  const toastClass = className && typeof className === 'object' && !Array.isArray(className)
-    ? className.toast
-    : className;
-  const buttonClass = className?.button;
+  const { toast: toastClass, button: buttonClass } = splitClassName(className);
 
   el.classList.add('simpletoast');
   el.className = classes(el.className, toastClass);
@@ -171,7 +177,7 @@ function Toast(input) {
   if (!el.hasAttribute('tabindex')) el.tabIndex = 0;
   if (data && typeof data === 'object') {
     Object.keys(data).forEach((key) => {
-      el.dataset[key] = data[key];
+      el.dataset[key] = String(data[key]);
     });
   }
 
@@ -181,7 +187,6 @@ function Toast(input) {
 
   let closed = false;
 
-  const handle = { element: el };
   const exists = () => el.isConnected || (!closed && !getRoot().isConnected);
   function close(reason = 'unknown') {
     if (closed) return;
@@ -199,10 +204,14 @@ function Toast(input) {
     if (content == null || !element || !exists()) return;
     setContent(element, content);
   }
-  Object.assign(handle, { exists, close });
-  handle.setTitle = set.bind(null, titleEl);
-  handle.setText = set.bind(null, bodyEl);
-  handle.setFooter = set.bind(null, footerEl);
+  const handle = {
+    element: el,
+    exists,
+    close,
+    setTitle: set.bind(null, titleEl),
+    setText: set.bind(null, bodyEl),
+    setFooter: set.bind(null, footerEl),
+  };
   const onAbort = () => close('aborted');
 
   const buttonList = typeof buttons === 'object' && !Array.isArray(buttons) ? [buttons] : buttons;
@@ -220,7 +229,7 @@ function Toast(input) {
       if (buttonsEl) {
         buttonsEl.appendChild(buttonEl);
       } else if (footerEl) {
-        footerEl.parentNode.insertBefore(buttonEl, footerEl);
+        footerEl.before(buttonEl);
       } else {
         el.appendChild(buttonEl);
       }
@@ -344,11 +353,11 @@ function listen() {
 }
 
 function createTimer({ timeout, pauseOnHover = true, idle = DEFAULT_IDLE }, expire) {
-  if (!(timeout > 0)) return null;
+  if (!timeout || !(timeout > 0)) return null;
   return {
     remaining: timeout,
     startedAt: null,
-    id: null,
+    id: undefined,
     hover: false,
     focus: false,
     idleHeld: false,

@@ -1,7 +1,8 @@
 import { isNewer, versionString } from './version.js';
 
+/** @param {string} css */
 export function injectStylesheet(css) {
-  const existing = document.querySelector('style[data-simpletoast-stylesheet]');
+  const existing = /** @type {HTMLStyleElement | null} */ (document.querySelector('style[data-simpletoast-stylesheet]'));
   if (existing) {
     if (isNewer(versionString, existing.dataset.version)) {
       existing.textContent = css;

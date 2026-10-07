@@ -60,6 +60,8 @@ declare global {
   }
 
   interface HTMLElementEventMap extends SimpleToastEvents<SimpleToastOptions> {}
+
+  interface DocumentEventMap extends SimpleToastEvents<SimpleToastOptions> {}
 }
 
 export type { SimpleToastButton, SimpleToastClassName, SimpleToastCloseReason, SimpleToastHandle, SimpleToastOptions, SimpleToastRole, SimpleToastStatic };

@@ -66,6 +66,15 @@ describe('types', () => {
     });
   });
 
+  it('types the events on document', () => {
+    document.addEventListener('simpletoast:add', (event) => {
+      expectTypeOf(event.detail.toast).toEqualTypeOf<SimpleToastHandle>();
+    });
+    document.addEventListener('simpletoast:close', (event) => {
+      expectTypeOf(event.detail.reason).toBeString();
+    });
+  });
+
   it('declares window.SimpleToast', () => {
     expectTypeOf(window.SimpleToast).toEqualTypeOf<SimpleToastStatic | undefined>();
   });

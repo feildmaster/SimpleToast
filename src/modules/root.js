@@ -1,8 +1,13 @@
+/** @typedef {(root: HTMLElement) => void} RootCallback */
+
 const ROOT_ID = 'AlertToast';
 
+/** @type {HTMLElement | null} */
 let rootElement = null;
+/** @type {RootCallback[]} */
 const pending = [];
 
+/** @param {HTMLElement} el */
 function prepareRoot(el) {
   el.classList.add('simpletoast-root');
   if (!el.hasAttribute('aria-live')) el.setAttribute('aria-live', 'polite');
@@ -11,7 +16,7 @@ function prepareRoot(el) {
 }
 
 function flush() {
-  pending.splice(0).forEach((callback) => callback(rootElement));
+  pending.splice(0).forEach((callback) => callback(getRoot()));
 }
 
 export function initRoot() {
@@ -39,11 +44,13 @@ export function initRoot() {
   }, { once: true });
 }
 
-export const getRoot = () => rootElement;
+export const getRoot = () => /** @type {HTMLElement} */ (rootElement);
 
+/** @param {RootCallback} callback */
 export function whenConnected(callback) {
-  if (rootElement.isConnected) {
-    callback(rootElement);
+  const root = getRoot();
+  if (root.isConnected) {
+    callback(root);
   } else {
     pending.push(callback);
   }

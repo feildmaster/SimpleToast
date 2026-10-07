@@ -6,7 +6,8 @@
   "types": "dist/simpletoast.d.ts",
   "scripts": {
     "build": "node build.mjs",
-    "test": "npm run build && vitest run",
+    "typecheck": "tsc",
+    "test": "npm run build && tsc && vitest run",
     "version": "node build.mjs && git add dist"
   },
   "private": true,
