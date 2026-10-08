@@ -397,10 +397,16 @@ function idleThreshold(idle) {
   return threshold > 0 && Number.isFinite(threshold) ? threshold : false;
 }
 
+function timeoutDuration(timeout) {
+  const duration = Number(timeout);
+  return duration > 0 && Number.isFinite(duration) ? duration : 0;
+}
+
 function createTimer({ timeout, pauseOnHover = true, idle }, expire) {
-  if (!(timeout && timeout > 0 && Number.isFinite(timeout))) return null;
+  const duration = timeoutDuration(timeout);
+  if (!duration) return null;
   return {
-    remaining: timeout,
+    remaining: duration,
     startedAt: null,
     id: undefined,
     hover: false,

@@ -60,6 +60,14 @@ describe('timeouts', () => {
     expect(page.clock.countTimers()).toBe(0);
   });
 
+  it('accept a numeric string as the timeout', () => {
+    const toast = SimpleToast({ text: 'a', timeout: '100', idle: false });
+    tick(99);
+    expect(toast.exists()).toBe(true);
+    tick(1);
+    expect(toast.exists()).toBe(false);
+  });
+
   it.each([Infinity, -Infinity, NaN, 0, -1, null, 'later'])('do not start for a timeout of %s', (timeout) => {
     const toast = SimpleToast({ text: 'a', timeout, idle: false });
     expect(page.clock.countTimers()).toBe(0);
