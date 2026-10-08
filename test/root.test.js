@@ -191,17 +191,31 @@ describe('root and publishing', () => {
       page = createPage();
       const style = page.document.createElement('style');
       style.dataset.simpletoastStylesheet = '';
-      style.dataset.version = '2.5';
+      style.dataset.version = '2.5.0';
       style.textContent = 'old';
       page.document.head.appendChild(style);
       page.load();
       expect(styles().length).toBe(1);
       expect(style.textContent).toBe(sources.css);
 
-      style.dataset.version = '9.0';
+      style.dataset.version = '9.0.0';
       style.textContent = 'newer';
       page.load(sources.injecting, { sandbox: true });
       expect(style.textContent).toBe('newer');
+    });
+
+    it.each([[undefined], [''], ['custom'], ['2'], ['2.5']])('leaves a style the page marked itself alone (data-version %j)', (version) => {
+      page = createPage();
+      const style = page.document.createElement('style');
+      style.dataset.simpletoastStylesheet = '';
+      if (version !== undefined) style.dataset.version = version;
+      style.textContent = 'mine';
+      page.document.head.appendChild(style);
+      page.load();
+      page.load(sources.injecting, { sandbox: true });
+      expect(styles().length).toBe(1);
+      expect(style.textContent).toBe('mine');
+      expect(style.dataset.version ?? undefined).toBe(version);
     });
 
     it('ships the same css as simpletoast.css', () => {

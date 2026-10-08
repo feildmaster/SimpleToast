@@ -315,10 +315,12 @@ function install(root, setup) {
   }
 }
 
+const isVersion = (version) => /^\d+(\.\d+){2}$/.test(version ?? '');
+
 function injectStylesheet(css) {
   const existing = document.querySelector('style[data-simpletoast-stylesheet]');
   if (existing) {
-    if (isNewer(versionString, existing.dataset.version)) {
+    if (isVersion(existing.dataset.version) && isNewer(versionString, existing.dataset.version)) {
       existing.textContent = css;
       existing.dataset.version = versionString;
     }

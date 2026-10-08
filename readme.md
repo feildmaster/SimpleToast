@@ -16,6 +16,8 @@ Small (but powerful) toast library.
 
 The default build injects its stylesheet as a `<style>` element, which a Content Security Policy with a strict `style-src` blocks. On such pages, use `simpletoast.core.js` (plus `simpletoast.timers.js` for timeouts) and load `simpletoast.css` with a `<link rel="stylesheet">` from an origin the policy allows.
 
+To manage the styles yourself with the default build, put your own `<style data-simpletoast-stylesheet>` in the page without a `data-version`. SimpleToast then neither adds nor changes a stylesheet. Give it a `data-version` in the form `major.minor.patch` (for example `data-version="3.0.0"`) and a newer copy of SimpleToast replaces it with its own.
+
 `npm run build` regenerates all of them from `src/`.
 
 ## Usage
