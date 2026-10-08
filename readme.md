@@ -70,7 +70,8 @@ A page can control the toast's structure with a `<template id="simpletoast-templ
 
 * SimpleToast adds its own classes, `role`, `tabindex` and the click and keyboard handling to `toast.element`. A `role` or `tabindex` on a single root element is kept (the `role` option still wins).
 * Parts are found inside `toast.element` by class: `.simpletoast-title`, `.simpletoast-body`, `.simpletoast-footer` and the optional `.simpletoast-buttons`. With a single root element they must be inside it, not on it.
-* Only the parts the template has are filled in. The template above has no title, so a `title` option shows nowhere. If none of `title`, `text` or `footer` has a part, the toast is not shown and you get a dead handle, the same as an empty call. Each of `setText`, `setTitle` and `setFooter` needs its part in the template and does nothing without it.* Buttons go in a `.simpletoast-buttons` element if the template has one. Otherwise they go before the footer, or at the end of the toast when there is no footer.
+* Only the parts the template has are filled in. The template above has no title, so a `title` option shows nowhere. If none of `title`, `text` or `footer` has a part, the toast is not shown and you get a dead handle, the same as an empty call. Each of `setText`, `setTitle` and `setFooter` needs its part in the template and does nothing without it.
+* Buttons go in a `.simpletoast-buttons` element if the template has one. Otherwise they go before the footer, or at the end of the toast when there is no footer.
 * A template with none of the part classes logs a console warning once, since no toast can be shown. A template with no element at all falls back to the default structure without a warning.
 
 ### Buttons
