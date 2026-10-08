@@ -51,6 +51,10 @@ interface SimpleToastFactory<Options> {
   count(): number;
 }
 
+interface SimpleToastElementEvents {
+  'simpletoast:dismiss': CustomEvent<{ reason?: SimpleToastCloseReason }>;
+}
+
 interface SimpleToastEvents<Options> {
   'simpletoast:add': CustomEvent<{ toast: SimpleToastHandle; options: Options }>;
   'simpletoast:close': CustomEvent<{ toast: SimpleToastHandle; reason: SimpleToastCloseReason }>;
@@ -65,7 +69,7 @@ declare global {
     SimpleToast?: SimpleToastStatic;
   }
 
-  interface HTMLElementEventMap extends SimpleToastEvents<SimpleToastOptions> {}
+  interface HTMLElementEventMap extends SimpleToastEvents<SimpleToastOptions>, SimpleToastElementEvents {}
 
   interface DocumentEventMap extends SimpleToastEvents<SimpleToastOptions> {}
 }

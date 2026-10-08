@@ -48,7 +48,7 @@ const blankToast = () => Object.freeze({
  * @returns {SimpleToastHandle}
  */
 function Toast(input) {
-  const options = typeof input === 'string' ? { text: input } : input || {};
+  const options = Object.freeze({ ...(typeof input === 'string' ? { text: input } : input) });
   const {
     title,
     text,
@@ -166,13 +166,15 @@ function Toast(input) {
     }
   });
 
+  el.addEventListener('simpletoast:dismiss', (event) => close(event.detail?.reason));
+
   signal?.addEventListener('abort', onAbort, { once: true });
 
   root.appendChild(el);
   open.add(exists);
-  whenConnected((connectedRoot) => {
+  whenConnected(() => {
     if (closed) return;
-    emit(connectedRoot, 'simpletoast:add', { toast: handle, options }, true);
+    emit(el, 'simpletoast:add', { toast: handle, options }, true);
   });
   return handle;
 }

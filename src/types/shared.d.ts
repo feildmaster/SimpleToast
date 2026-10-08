@@ -51,6 +51,10 @@ export interface SimpleToastFactory<Options> {
   count(): number;
 }
 
+export interface SimpleToastElementEvents {
+  'simpletoast:dismiss': CustomEvent<{ reason?: SimpleToastCloseReason }>;
+}
+
 export interface SimpleToastEvents<Options> {
   'simpletoast:add': CustomEvent<{ toast: SimpleToastHandle; options: Options }>;
   'simpletoast:close': CustomEvent<{ toast: SimpleToastHandle; reason: SimpleToastCloseReason }>;

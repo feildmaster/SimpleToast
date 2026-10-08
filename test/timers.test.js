@@ -326,6 +326,40 @@ describe('timeouts', () => {
       expect(page.clock.countTimers()).toBe(1);
     });
 
+    it('closes a toast made before the body exists even if its methods were overwritten meanwhile', () => {
+      page.close();
+      page = createPage();
+      page.window.document.hasFocus = () => true;
+      page.document.body.remove();
+      page.load(sources.core, { sandbox: true });
+      page.load(sources.timers, { sandbox: true });
+      const toast = page.window.SimpleToast({ text: 'early', timeout: 100, idle: false });
+      toast.close = () => {};
+      toast.exists = () => false;
+
+      page.document.documentElement.appendChild(page.document.createElement('body'));
+      page.document.dispatchEvent(new page.window.Event('DOMContentLoaded'));
+      tick(100);
+      expect(toast.element.isConnected).toBe(false);
+    });
+
+    it('closes a toast made before the body exists even if its element was replaced meanwhile', () => {
+      page.close();
+      page = createPage();
+      page.window.document.hasFocus = () => true;
+      page.document.body.remove();
+      page.load(sources.core, { sandbox: true });
+      page.load(sources.timers, { sandbox: true });
+      const toast = page.window.SimpleToast({ text: 'early', timeout: 100, idle: false });
+      const real = toast.element;
+      toast.element = page.document.createElement('div');
+
+      page.document.documentElement.appendChild(page.document.createElement('body'));
+      page.document.dispatchEvent(new page.window.Event('DOMContentLoaded'));
+      tick(100);
+      expect(real.isConnected).toBe(false);
+    });
+
     it('starts the timeout of a toast shown before the body exists once it is attached', () => {
       page.close();
       page = createPage();

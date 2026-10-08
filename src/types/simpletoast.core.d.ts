@@ -1,4 +1,9 @@
-import type { SimpleToastBaseOptions, SimpleToastEvents, SimpleToastFactory } from './shared';
+import type {
+  SimpleToastBaseOptions,
+  SimpleToastElementEvents,
+  SimpleToastEvents,
+  SimpleToastFactory,
+} from './shared';
 
 export type {
   SimpleToastButton,
@@ -17,7 +22,7 @@ declare global {
     SimpleToast?: SimpleToastStatic;
   }
 
-  interface HTMLElementEventMap extends SimpleToastEvents<SimpleToastOptions> {}
+  interface HTMLElementEventMap extends SimpleToastEvents<SimpleToastOptions>, SimpleToastElementEvents {}
 
   interface DocumentEventMap extends SimpleToastEvents<SimpleToastOptions> {}
 }

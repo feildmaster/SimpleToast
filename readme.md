@@ -140,11 +140,17 @@ Timeouts are a feature of `simpletoast.js` and of the `simpletoast.timers.js` ad
 
 ### Events
 
-`#AlertToast` receives `simpletoast:add` and `simpletoast:close`. Both bubble, so `document` can listen too. `event.detail.toast` is the handle. `simpletoast:add` also has `event.detail.options`, the options the toast was created with, and `simpletoast:close` has `event.detail.reason`. Features such as timeouts are built on these events (the timers add-on only listens on `document`).
+`#AlertToast` receives `simpletoast:add` and `simpletoast:close`. Both bubble, so `document` can listen too. `event.detail.toast` is the handle. `simpletoast:add` also has `event.detail.options`, a frozen copy of the options the toast was created with, and `simpletoast:close` has `event.detail.reason`. Features such as timeouts are built on these events (the timers add-on only listens on `document`).
 
-`simpletoast:add` fires once the toast is in the document. A toast shown before `<body>` exists gets its event when the page loads. A toast closed before then never fires `simpletoast:add`.
+`simpletoast:add` is dispatched on the toast's element and bubbles through `#AlertToast` to `document`, so `event.target` is the toast element. It fires once the toast is in the document. A toast shown before `<body>` exists gets its event when the page loads. A toast closed before then never fires `simpletoast:add`.
 
 The toast's own element receives the same `simpletoast:close` event with the same detail. It does not bubble, so a listener on the root hears each close once.
+
+To close a toast without its handle, dispatch `simpletoast:dismiss` on its element. The optional `detail.reason` becomes the close reason (`'unknown'` without one). The timers add-on closes toasts this way, with the reason `'timeout'`.
+
+```javascript
+toast.element.dispatchEvent(new CustomEvent('simpletoast:dismiss', { detail: { reason: 'custom' } }));
+```
 
 ### Accessibility
 

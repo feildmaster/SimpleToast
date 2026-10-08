@@ -66,6 +66,14 @@ describe('types', () => {
     });
   });
 
+  it('types the dismiss event on the element', () => {
+    const el = document.createElement('div');
+    el.addEventListener('simpletoast:dismiss', (event) => {
+      expectTypeOf(event.detail.reason).toEqualTypeOf<SimpleToastCloseReason | undefined>();
+    });
+    el.dispatchEvent(new CustomEvent('simpletoast:dismiss', { detail: { reason: 'custom' } }));
+  });
+
   it('types the events on document', () => {
     document.addEventListener('simpletoast:add', (event) => {
       expectTypeOf(event.detail.toast).toEqualTypeOf<SimpleToastHandle>();

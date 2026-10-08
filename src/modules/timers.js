@@ -136,10 +136,12 @@ function bindPresence(timer, el) {
 
 export function installTimers() {
   document.addEventListener('simpletoast:add', (event) => {
-    const { toast, options } = event.detail;
-    const { element: el, exists, close } = toast;
-    if (!options || el.hasAttribute(MARK) || !exists()) return;
-    const timer = createTimer(options, () => close('timeout'));
+    const { options } = event.detail;
+    const el = /** @type {HTMLElement} */ (event.target);
+    if (!options || el.hasAttribute(MARK) || !el.isConnected) return;
+    const timer = createTimer(options, () => {
+      el.dispatchEvent(new CustomEvent('simpletoast:dismiss', { detail: { reason: 'timeout' } }));
+    });
     if (!timer) return;
     el.setAttribute(MARK, '');
     bindPresence(timer, el);

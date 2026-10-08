@@ -79,7 +79,7 @@ function whenConnected(callback) {
 }
 
 function emit(target, type, detail, bubbles = false) {
-  target.dispatchEvent(new CustomEvent(type, { detail, bubbles }));
+  target.dispatchEvent(new CustomEvent(type, { detail: Object.freeze(detail), bubbles }));
 }
 
 const TEMPLATE_ID = 'simpletoast-template';
@@ -174,7 +174,7 @@ const blankToast = () => Object.freeze({
 });
 
 function Toast(input) {
-  const options = typeof input === 'string' ? { text: input } : input || {};
+  const options = Object.freeze({ ...(typeof input === 'string' ? { text: input } : input) });
   const {
     title,
     text,
@@ -282,13 +282,15 @@ function Toast(input) {
     }
   });
 
+  el.addEventListener('simpletoast:dismiss', (event) => close(event.detail?.reason));
+
   signal?.addEventListener('abort', onAbort, { once: true });
 
   root.appendChild(el);
   open.add(exists);
-  whenConnected((connectedRoot) => {
+  whenConnected(() => {
     if (closed) return;
-    emit(connectedRoot, 'simpletoast:add', { toast: handle, options }, true);
+    emit(el, 'simpletoast:add', { toast: handle, options }, true);
   });
   return handle;
 }

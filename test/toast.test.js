@@ -418,6 +418,23 @@ describe('toast', () => {
       expect(close.mock.calls[0][0].detail).toEqual({ toast, reason: 'why' });
     });
 
+    it('dispatches add on the toast element and lets it bubble to the root and document', () => {
+      const targets = [];
+      page.root().addEventListener('simpletoast:add', (event) => targets.push(['root', event.target]));
+      page.document.addEventListener('simpletoast:add', (event) => targets.push(['document', event.target]));
+      const toast = SimpleToast('a');
+      expect(targets).toEqual([['root', toast.element], ['document', toast.element]]);
+    });
+
+    it('freezes the details of the add and close events', () => {
+      const details = [];
+      page.document.addEventListener('simpletoast:add', (event) => details.push(event.detail));
+      page.document.addEventListener('simpletoast:close', (event) => details.push(event.detail));
+      SimpleToast('a').close();
+      expect(details.length).toBe(2);
+      expect(details.every((detail) => Object.isFrozen(detail))).toBe(true);
+    });
+
     it('bubbles the root events to the document, once each', () => {
       const seen = [];
       page.document.addEventListener('simpletoast:add', () => seen.push('add'));
@@ -450,8 +467,26 @@ describe('toast', () => {
       const options = { text: 'a', timeout: 5, custom: 'x' };
       SimpleToast(options);
       SimpleToast('plain');
-      expect(details[0]).toBe(options);
+      expect(details[0]).toEqual(options);
       expect(details[1]).toEqual({ text: 'plain' });
+    });
+
+    it('passes a frozen copy of the options that later changes do not reach', () => {
+      page.close();
+      page = createPage();
+      page.document.body.remove();
+      SimpleToast = page.load();
+      const details = [];
+      page.document.addEventListener('simpletoast:add', (event) => details.push(event.detail.options));
+      const options = { text: 'a', timeout: 5 };
+      SimpleToast(options);
+      options.timeout = 9000;
+
+      page.document.documentElement.appendChild(page.document.createElement('body'));
+      page.document.dispatchEvent(new page.window.Event('DOMContentLoaded'));
+      expect(details[0]).not.toBe(options);
+      expect(details[0].timeout).toBe(5);
+      expect(Object.isFrozen(details[0])).toBe(true);
     });
 
     it('has the element in the document when add fires', () => {
@@ -497,6 +532,29 @@ describe('toast', () => {
       aborted.close = () => {};
       controller.abort();
       expect(aborted.element.isConnected).toBe(false);
+    });
+
+    it('closes when its element gets a dismiss event', () => {
+      const onClose = vi.fn();
+      const toast = SimpleToast({ text: 'a', onClose });
+      toast.element.dispatchEvent(new page.window.CustomEvent('simpletoast:dismiss', { detail: { reason: 'custom' } }));
+      expect(toast.exists()).toBe(false);
+      expect(onClose.mock.calls[0][0]).toBe('custom');
+    });
+
+    it('closes with the unknown reason when the dismiss event has no detail', () => {
+      const onClose = vi.fn();
+      const toast = SimpleToast({ text: 'a', onClose });
+      toast.element.dispatchEvent(new page.window.Event('simpletoast:dismiss'));
+      expect(toast.exists()).toBe(false);
+      expect(onClose.mock.calls[0][0]).toBe('unknown');
+    });
+
+    it('closes on a dismiss event even when close is overwritten', () => {
+      const toast = SimpleToast('a');
+      toast.close = () => {};
+      toast.element.dispatchEvent(new page.window.CustomEvent('simpletoast:dismiss'));
+      expect(toast.element.isConnected).toBe(false);
     });
 
     it('lets the setters work when exists is overwritten', () => {

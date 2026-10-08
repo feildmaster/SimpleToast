@@ -1,5 +1,6 @@
 import type {
   SimpleToastBaseOptions,
+  SimpleToastElementEvents,
   SimpleToastEvents,
   SimpleToastFactory,
   SimpleToastTimerOptions,
@@ -23,7 +24,7 @@ declare global {
     SimpleToast?: SimpleToastStatic;
   }
 
-  interface HTMLElementEventMap extends SimpleToastEvents<SimpleToastOptions> {}
+  interface HTMLElementEventMap extends SimpleToastEvents<SimpleToastOptions>, SimpleToastElementEvents {}
 
   interface DocumentEventMap extends SimpleToastEvents<SimpleToastOptions> {}
 }

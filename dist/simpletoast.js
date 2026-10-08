@@ -81,7 +81,7 @@ function whenConnected(callback) {
 }
 
 function emit(target, type, detail, bubbles = false) {
-  target.dispatchEvent(new CustomEvent(type, { detail, bubbles }));
+  target.dispatchEvent(new CustomEvent(type, { detail: Object.freeze(detail), bubbles }));
 }
 
 const TEMPLATE_ID = 'simpletoast-template';
@@ -176,7 +176,7 @@ const blankToast = () => Object.freeze({
 });
 
 function Toast(input) {
-  const options = typeof input === 'string' ? { text: input } : input || {};
+  const options = Object.freeze({ ...(typeof input === 'string' ? { text: input } : input) });
   const {
     title,
     text,
@@ -284,13 +284,15 @@ function Toast(input) {
     }
   });
 
+  el.addEventListener('simpletoast:dismiss', (event) => close(event.detail?.reason));
+
   signal?.addEventListener('abort', onAbort, { once: true });
 
   root.appendChild(el);
   open.add(exists);
-  whenConnected((connectedRoot) => {
+  whenConnected(() => {
     if (closed) return;
-    emit(connectedRoot, 'simpletoast:add', { toast: handle, options }, true);
+    emit(el, 'simpletoast:add', { toast: handle, options }, true);
   });
   return handle;
 }
@@ -442,10 +444,12 @@ function bindPresence(timer, el) {
 
 function installTimers() {
   document.addEventListener('simpletoast:add', (event) => {
-    const { toast, options } = event.detail;
-    const { element: el, exists, close } = toast;
-    if (!options || el.hasAttribute(MARK) || !exists()) return;
-    const timer = createTimer(options, () => close('timeout'));
+    const { options } = event.detail;
+    const el = event.target;
+    if (!options || el.hasAttribute(MARK) || !el.isConnected) return;
+    const timer = createTimer(options, () => {
+      el.dispatchEvent(new CustomEvent('simpletoast:dismiss', { detail: { reason: 'timeout' } }));
+    });
     if (!timer) return;
     el.setAttribute(MARK, '');
     bindPresence(timer, el);
