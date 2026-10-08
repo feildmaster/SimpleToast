@@ -14,7 +14,7 @@
     console.log(`SimpleToast(v${localToast.versionString}): Publicized`);
   }
 })(this, () => {
-  const version = buildVersion(2, 0, 5);
+  const version = buildVersion(2, 0, 3);
   const style = {
     root: {
       display: 'flex',
@@ -177,13 +177,13 @@
     const safeToast = {};
     const toast = {
       setText: (newText) => {
-        if (newText == null || !toast.exists()) return;
+        if (!newText || !toast.exists()) return;
         body.innerHTML = newText;
       },
       exists: () => toasts.has(id),
       close: (closeType = 'unknown') => {
         if (!toast.exists()) return;
-        el.remove();
+        root.removeChild(el);
         toasts.delete(id);
         if (typeof onClose === 'function') {
           onClose.call(safeToast, closeType, safeToast);
@@ -208,9 +208,8 @@
         applyCSS(elb, style.button);
         applyCSS(elb, css.button);
         applyCSS(elb, button.css);
-        const onClick = button.onClick ?? button.onclick;
-        if (typeof onClick === 'function') {
-          elb.onclick = (e) => onClick.call(safeToast, e, safeToast);
+        if (typeof button.onclick === 'function') {
+          elb.onclick = (e) => button.onclick.call(safeToast, e, safeToast);
         }
         let prev = {};
         elb.onmouseover = () => {

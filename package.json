@@ -1,6 +1,22 @@
 {
   "name": "simpletoast",
-  "main": "simpletoast.js",
-  "browser": "simpletoast.js",
-  "private": true
+  "version": "3.0.0",
+  "main": "dist/simpletoast.js",
+  "browser": "dist/simpletoast.js",
+  "types": "dist/simpletoast.d.ts",
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc",
+    "test": "npm run build && tsc && vitest run",
+    "version": "node build.mjs && git add dist"
+  },
+  "private": true,
+  "devDependencies": {
+    "@sinonjs/fake-timers": "^15.4.0",
+    "jsdom": "^29.1.1",
+    "rollup": "^4.64.0",
+    "rollup-plugin-dts": "^6.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.3"
+  }
 }
