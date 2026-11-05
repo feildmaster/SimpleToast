@@ -1,6 +1,6 @@
 {
   "name": "simpletoast",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "main": "dist/simpletoast.js",
   "browser": "dist/simpletoast.js",
   "types": "dist/simpletoast.d.ts",

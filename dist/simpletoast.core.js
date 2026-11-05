@@ -128,7 +128,7 @@ function createStructure() {
   return fromTemplate() ?? fromDefault();
 }
 
-const version = "3.0.0";
+const version = "3.0.1";
 
 function parse(string) {
   const [one = 0, two = 0, three = 0] = String(string).split('.').map((part) => Number(part) || 0);
