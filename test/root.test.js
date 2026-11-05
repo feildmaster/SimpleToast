@@ -136,12 +136,12 @@ describe('root and publishing', () => {
       expect(toast.exists()).toBe(false);
     });
 
-    it('does nothing in a frame', () => {
+    it('works in a frame without publishing to the top window', () => {
       page = createPage('<!doctype html><body><iframe></iframe></body>');
       const frame = page.document.querySelector('iframe').contentWindow;
       frame.eval(sources.injecting);
-      expect(frame.SimpleToast).toBeUndefined();
-      expect(frame.document.getElementById('AlertToast')).toBe(null);
+      expect(frame.SimpleToast.versionString).toBe(packageJson.version);
+      expect(page.window.SimpleToast).toBeUndefined();
     });
   });
 
@@ -275,6 +275,34 @@ describe('root and publishing', () => {
       page.window.SimpleToast = Object.assign(() => {}, { version: 2000000000 });
       page.load();
       expect(page.window.SimpleToast.versionString).toBe(packageJson.version);
+    });
+
+    describe('with a root shared between loads', () => {
+      const older = () => sources.injecting.replace(`"${packageJson.version}"`, '"2.9.0"');
+      const run = (page, source, shared) => {
+        page.window.sharedRoot = shared;
+        page.window.eval(`(function () {
+${source}
+}).call(sharedRoot)`);
+      };
+
+      it('replaces an older copy on the root with a newer one', () => {
+        page = createPage();
+        const shared = {};
+        run(page, older(), shared);
+        expect(shared.SimpleToast.versionString).toBe('2.9.0');
+        run(page, sources.injecting, shared);
+        expect(shared.SimpleToast.versionString).toBe(packageJson.version);
+      });
+
+      it('keeps a newer copy on the root when an older one loads later', () => {
+        page = createPage();
+        const shared = {};
+        run(page, sources.injecting, shared);
+        const kept = shared.SimpleToast;
+        run(page, older(), shared);
+        expect(shared.SimpleToast).toBe(kept);
+      });
     });
 
     const [major, minor, patch] = packageJson.version.split('.').map(Number);

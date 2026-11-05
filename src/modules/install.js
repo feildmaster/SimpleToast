@@ -3,17 +3,23 @@ import Toast from './toast.js';
 import { isNewer, versionString } from './version.js';
 
 /**
+ * @param {Toast} [current]
+ */
+function shouldReplace(current) {
+  return !current?.versionString || isNewer(versionString, current.versionString);
+}
+
+/**
  * @param {Window} root
  * @param {() => void} [setup]
  */
 export function install(root, setup) {
-  if (window !== window.top) return;
   const bound = window.SimpleToast;
   initRoot();
   if (setup) setup();
-  if (root !== window) root.SimpleToast = Toast;
+  if (shouldReplace(root.SimpleToast)) root.SimpleToast = Toast;
   console.log(`SimpleToast(v${versionString}): Loaded`);
-  if (!bound?.versionString || isNewer(versionString, bound.versionString)) {
+  if (window === window.top && shouldReplace(bound)) {
     window.SimpleToast = Toast;
     console.log(`SimpleToast(v${versionString}): Publicized`);
   }

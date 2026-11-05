@@ -302,14 +302,17 @@ Toast.versionString = versionString;
 Toast.count = () => Array.from(open).filter((stillExists) => stillExists()).length;
 Object.freeze(Toast);
 
+function shouldReplace(current) {
+  return !current?.versionString || isNewer(versionString, current.versionString);
+}
+
 function install(root, setup) {
-  if (window !== window.top) return;
   const bound = window.SimpleToast;
   initRoot();
   if (setup) setup();
-  if (root !== window) root.SimpleToast = Toast;
+  if (shouldReplace(root.SimpleToast)) root.SimpleToast = Toast;
   console.log(`SimpleToast(v${versionString}): Loaded`);
-  if (!bound?.versionString || isNewer(versionString, bound.versionString)) {
+  if (window === window.top && shouldReplace(bound)) {
     window.SimpleToast = Toast;
     console.log(`SimpleToast(v${versionString}): Publicized`);
   }
